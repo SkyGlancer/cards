@@ -269,11 +269,14 @@ export default class Game extends Phaser.Scene {
         this.submitText.on('pointerdown', function () {
             console.log("submitted");
 
-            self.player.currentDealt.forEach(gameObject => {
-                self.player.lastDealt.push(gameObject.card);
-                //self.gameObjectsOnHandandTable.push(gameObject);
-            })
+            var cardObjs = self.player.currentDealt;
             self.player.currentDealt = [];
+            //change game object to cards
+           
+            cardObjs.forEach(gameObject => {
+                self.player.currentDealt.push(gameObject.card);
+            })
+            
             console.log("hand: " + self.player.hand)
             console.log("currentDealt: " + self.player.currentDealt);
             console.log("lastDealt: " + self.player.lastDealt);

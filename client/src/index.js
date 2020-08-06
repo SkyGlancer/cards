@@ -3,6 +3,7 @@ import Game from "./scenes/game"
 import io from 'socket.io-client';
 
 let socket = io('http://35.244.33.191:3000');
+//let socket = io('http://localhost:3000');
 const config = {
     type: Phaser.AUTO,
     parent: "phaser-example",

@@ -176,9 +176,9 @@ io.on('connection', function (socket) {
     socket.on('cardPlayed', function (playerJSON) {
         let player = JSON.parse(playerJSON);
         PLAYER_LIST[player.id].hand = player.hand;
-        PLAYER_LIST[player.id].lastDealt = player.lastDealt;
-        PLAYER_LIST[player.id].currentDealt = player.currentDealt;
-        player.lastDealt.forEach(card => ROOM_LIST[player.room].game.cardsOnTable.push(card));
+        PLAYER_LIST[player.id].lastDealt = player.currentDealt;
+        PLAYER_LIST[player.id].currentDealt = [];
+        player.currentDealt.forEach(card => ROOM_LIST[player.room].game.cardsOnTable.push(card));
         ROOM_LIST[player.room].game.lastPlayer = player.id;
         gameUpdate(player.room);
     });
@@ -324,6 +324,12 @@ function leaveRoom(socket){
   let player = PLAYER_LIST[socket.id]              // Get the player that made the request
   delete PLAYER_LIST[player.id]                    // Delete the player from the player list
   delete ROOM_LIST[player.room].players[player.id] // Remove the player from their room
+  console.log("leaveRoom" + ROOM_LIST[player.room].playersArr.length);
+  for(let i=0; i<ROOM_LIST[player.room].playersArr.length; i++){
+      if(ROOM_LIST[player.room].playersArr[i] == socket.id ){
+        ROOM_LIST[player.room].playersArr.splice(i, 1);
+      }
+    }
   gameUpdate(player.room)                          // Update everyone in the room
   // Server Log
   logStats(socket.id + "(" + player.nickname + ") LEFT '" + ROOM_LIST[player.room].room + "'(" + Object.keys(ROOM_LIST[player.room].players).length + ")")
@@ -345,6 +351,12 @@ function socketDisconnect(socket){
 
   if(player){   // If the player was in a room
     delete ROOM_LIST[player.room].players[socket.id] // Remove the player from their room
+    console.log("socketDisconnect" + ROOM_LIST[player.room].playersArr.length);
+    for(let i=0; i<ROOM_LIST[player.room].playersArr.length; i++){
+      if(ROOM_LIST[player.room].playersArr[i] == socket.id ){
+        ROOM_LIST[player.room].playersArr.splice(i, 1);
+      }
+    }
     gameUpdate(player.room)                          // Update everyone in the room
     // Server Log
     logStats(socket.id + "(" + player.nickname + ") LEFT '" + ROOM_LIST[player.room].room + "'(" + Object.keys(ROOM_LIST[player.room].players).length + ")")
@@ -394,7 +406,8 @@ function dealCards(room){
             var handSize = parseInt(deck.size/playerCount);
             console.log("handsize: " + handSize + "deck size: " + deck.size);
             for (let i = 0; i < handSize; i++) {
-               room.players[key].hand.push(deck.drawCard());
+               var card = deck.drawCard();
+               if(card) room.players[key].hand.push(card);
             }
         });
     }
