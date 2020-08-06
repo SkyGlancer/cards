@@ -28,12 +28,14 @@ export default class Game extends Phaser.Scene {
     }
 
     create() {
+
         console.log("check");
         this.isPlayerA = false;
         this.opponentCards = [];
         this.zone = new Zone(this, this.canvas.width/2, this.canvas.height/3, this.canvas.width/2, this.canvas.height/3, { cards: 0 });
         this.dropZone = this.zone.zone;
         this.dealer = new Dealer();
+        this.cardDealt = false;
 
         let self = this;
 
@@ -75,7 +77,7 @@ export default class Game extends Phaser.Scene {
 
         this.backupHand = [];
         this.gameObjectsOnTable = [];
-        this.gameTableHidden = true;
+        this.gameTableHidden = false;
         this.gameObjectsOnHandandTable = new Set();
         
         this.configureDealText(self);
@@ -87,6 +89,10 @@ export default class Game extends Phaser.Scene {
         this.configurePickFourFromTableText(self);
         this.configurePickAllFromTableText(self);
         this.configureShowLastText(self);
+        this.configureNewGameText(self);
+        this.configureHideTableText(self);
+        this.configureShowTableText(self);
+        this.configureSortText(self);
 
         this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
             gameObject.x = dragX;
@@ -109,7 +115,7 @@ export default class Game extends Phaser.Scene {
 
         this.input.on('drop', function (pointer, gameObject, dropZone) {
             dropZone.data.values.cards++;
-            gameObject.x = (dropZone.x - 350) + (dropZone.data.values.cards * 50);
+            gameObject.x = (dropZone.x - 350) + (dropZone.data.values.cards * 25);
             gameObject.y = dropZone.y;
             gameObject.dragStartX = gameObject.input.dragStartX;
             gameObject.dragStartY = gameObject.input.dragStartY;
@@ -134,13 +140,16 @@ export default class Game extends Phaser.Scene {
             //self.socket.emit('cardPlayed', gameObject, self.isPlayerA);
         })
 
+
         this.socket.on('gameState', (data) =>{           // Response to gamestate update
           console.log("gamestate : " + data);
+          self.gameTableHidden = data.gameTableHidden;
           self.players = data.players;
           console.log("player data from server: " + data.player);
           self.player = JSON.parse(data.player);
           console.log("after update, player:" + self.player);
           self.cardsOnTable = JSON.parse(data.cardsOnTable);
+          self.cardDealt = data.cardDealt;
           self.updateGame();
         });
 
@@ -154,13 +163,15 @@ export default class Game extends Phaser.Scene {
     updateGame(){
         let self = this;
         this.gameObjectsOnHandandTable.forEach(gameObject => gameObject.destroy());
-        this.gameObjectsOnHandandTable.clear();
+        this.gameObjectsOnHandandTable = [];
+        console.log("updategame: cardsonTableandHand: " + this.gameObjectsOnHandandTable.length )
+        this.gameObjectsOnTable= [];
         this.showPlayers();
         var i = 0
         this.player.hand.forEach(card => {
                 console.log(card.imageUrl);
                 var cardCopy = new Card(card.imageUrl, self.standardCardBack);
-                self.gameObjectsOnHandandTable.add(cardCopy.render(self, 475 + (i * 30), 650));
+                self.gameObjectsOnHandandTable.push(cardCopy.render(self, 475 + (i * 25), 650));
                 i++;
             });
         let dropZone = self.dropZone;
@@ -168,10 +179,10 @@ export default class Game extends Phaser.Scene {
         this.cardsOnTable.forEach(card => {      
             dropZone.data.values.cards++;
             var cardCopy = new Card(card.imageUrl, self.standardCardBack);
-            let x = (dropZone.x - 350) + (dropZone.data.values.cards * 50);
+            let x = (dropZone.x - 350) + (dropZone.data.values.cards * 20);
             let y = dropZone.y;
             let gObject = cardCopy.render(self, x, y, card.imageUrl);
-            self.gameObjectsOnHandandTable.add(gObject);
+            self.gameObjectsOnHandandTable.push(gObject);
             self.gameObjectsOnTable.push(gObject);
             if(self.gameTableHidden) cardCopy.hide();
 
@@ -212,7 +223,7 @@ export default class Game extends Phaser.Scene {
 
     configureDealText(self){
 
-        this.dealText = this.add.text(75, 550, ['DEAL CARDS']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.dealText = this.add.text(75, 750, ['DEAL CARDS']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
 
         this.dealText.on('pointerdown', function () {
             console.log("clicked")
@@ -260,7 +271,7 @@ export default class Game extends Phaser.Scene {
 
             self.player.currentDealt.forEach(gameObject => {
                 self.player.lastDealt.push(gameObject.card);
-                self.gameObjectsOnHandandTable.add(gameObject);
+                //self.gameObjectsOnHandandTable.push(gameObject);
             })
             self.player.currentDealt = [];
             console.log("hand: " + self.player.hand)
@@ -351,6 +362,64 @@ export default class Game extends Phaser.Scene {
         })
     }
 
+    configureNewGameText(self){
+        this.NewGameText = this.add.text(30, 450, ['NewGame']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.NewGameText.on('pointerdown', function () {
+            console.log("New Game");
+            self.socket.emit('newGame');
+        });
+        this.NewGameText.on('pointerover', function () {
+            self.submitText.setColor('#ff69b4');
+        })
 
+        this.NewGameText.on('pointerout', function () {
+            self.submitText.setColor('#00ffff');
+        })
+    }
+    
+    configureHideTableText(self){
+        this.HideTableText = this.add.text(30, 500, ['HideTable']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.HideTableText.on('pointerdown', function () {
+            console.log("picking all");
+            self.socket.emit('hideTable');
+        });
+        this.HideTableText.on('pointerover', function () {
+            self.submitText.setColor('#ff69b4');
+        })
+
+        this.HideTableText.on('pointerout', function () {
+            self.submitText.setColor('#00ffff');
+        })
+    }
+
+    configureShowTableText(self){
+        this.HideTableText = this.add.text(30, 550, ['ShowTable']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.HideTableText.on('pointerdown', function () {
+            console.log("picking all");
+            self.socket.emit('showTable');
+        });
+        this.HideTableText.on('pointerover', function () {
+            self.submitText.setColor('#ff69b4');
+        })
+
+        this.HideTableText.on('pointerout', function () {
+            self.submitText.setColor('#00ffff');
+        })
+    }
+
+    configureSortText(self){
+        this.SortText = this.add.text(30, 600, ['Sort']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.SortText.on('pointerdown', function () {
+            console.log("sorting");
+            self.socket.emit('sortHand');
+        });
+        this.SortText.on('pointerover', function () {
+            self.submitText.setColor('#ff69b4');
+        })
+
+        this.SortText.on('pointerout', function () {
+            self.submitText.setColor('#00ffff');
+        })
+    }
     
 }

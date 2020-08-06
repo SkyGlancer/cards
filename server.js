@@ -8,6 +8,7 @@ class Room {
     this.room = '' + name
     this.password = '' + pass
     this.players = {}
+    this.playersArr = [];
     this.game = new Game()
     this.difficulty = 'normal'
     this.mode = 'casual'
@@ -47,10 +48,16 @@ class Player {
         this.hand = []; //cards in  his hands
         this.lastDealt = [];
         this.currentDealt = [];
-
+        
 
         // Add player to player list and add their socket to the socket list
         PLAYER_LIST[this.id] = this
+    }
+
+    clear(){
+      this.hand = []; //cards in  his hands
+      this.lastDealt = [];
+      this.currentDealt = [];
     }
 }
 
@@ -60,6 +67,8 @@ class Game {
         this.decks.push(new Deck());
         this.decks.forEach(deck => deck.shuffle());
         this.cardsOnTable = [];
+        this.cardDealt = false;
+        this.gameTableHidden = false;
         //this.lastPlayer
     }
 }
@@ -76,6 +85,18 @@ class Card {
          return card;   
     }
 }
+
+var sortCardFun = function compare_qty(a, b){
+        if(a.imageUrl < b.imageUrl){
+                return -1;
+        // a should come after b in the sorted order
+        }else if(a.imageUrl > b.imageUrl){
+                return 1;
+        // a and b are the same
+        }else{
+                return 0;
+        }
+      }
 
 class Deck {
   
@@ -135,7 +156,10 @@ io.on('connection', function (socket) {
     socket.on('disconnect', () => {socketDisconnect(socket)})
     
     // New Game. Called when client starts a new game
-    socket.on('newGame', () =>{newGame(socket)})
+    socket.on('newGame', function(){
+      let player = PLAYER_LIST[socket.id];    
+        newGame(ROOM_LIST[player.room])
+    })
 
 
     socket.on('dealCards', function () {
@@ -145,7 +169,8 @@ io.on('connection', function (socket) {
     });
 
     socket.on('suffle', function () {
-        socket.emit('suffle');
+        let player = PLAYER_LIST[socket.id]; 
+        ROOM_LIST[player.room].game.decks.forEach(deck => deck.shuffle());
     });
 
     socket.on('cardPlayed', function (playerJSON) {
@@ -162,7 +187,7 @@ io.on('connection', function (socket) {
         let player = PLAYER_LIST[socket.id]; 
         if(number == -1){
             console.log("pushing all from table" + ROOM_LIST[player.room].game.cardsOnTable + "to "+ player.hand)
-            player.hand.push(ROOM_LIST[player.room].game.cardsOnTable);
+            ROOM_LIST[player.room].game.cardsOnTable.forEach(card => player.hand.push(card));
             console.log(player.hand);
             ROOM_LIST[player.room].game.cardsOnTable = [];
         } else {
@@ -186,6 +211,26 @@ io.on('connection', function (socket) {
         console.log('A user disconnected: ' + socket.id);
         //players = players.filter(player => player !== socket.id);
     });
+
+    socket.on('sortHand', function(){
+       let player = PLAYER_LIST[socket.id];
+       player.hand.sort(sortCardFun);
+       console.log("player id for sort" + player.id);
+       gameUpdate(player.room, {'players' : [player.id]});
+    });
+
+    socket.on('hideTable', function() {
+      let player = PLAYER_LIST[socket.id];
+      ROOM_LIST[player.room].game.gameTableHidden = true;
+      gameUpdate(player.room);
+    });
+
+    socket.on('showTable', function() {
+      let player = PLAYER_LIST[socket.id];
+      ROOM_LIST[player.room].game.gameTableHidden = false;
+      gameUpdate(player.room);
+    });
+
 });
 
 
@@ -217,7 +262,9 @@ function createRoom(socket, data){
       } else {    // If the room name and nickname are both valid, proceed
         new Room(roomName, passName)                          // Create a new room
         let player = new Player(userName, roomName, socket)   // Create a new player
-        ROOM_LIST[roomName].players[socket.id] = player       // Add player to room
+        ROOM_LIST[roomName].players[socket.id] = player   
+        ROOM_LIST[roomName].playersArr.push(socket.id);
+            // Add player to room
         //player.joinTeam()                                     // Distribute player to team
         socket.emit('createResponse', {success:true, msg: "", players: [userName]})// Tell client creation was successful
         //gameUpdate(roomName)                                  // Update the game for everyone in this room
@@ -247,17 +294,24 @@ function joinRoom(socket, data){
       if (userName === ''){
         // Tell client they need a valid nickname
         socket.emit('joinResponse', {success:false, msg:'Enter A Valid Nickname'})
-      } else {  // If the room exists and the password / nickname are valid, proceed
-        let player = new Player(userName, roomName, socket)   // Create a new player
-        ROOM_LIST[roomName].players[socket.id] = player       // Add player to room
-        //player.joinTeam()                                     // Distribute player to team
-        let players = [];
-        for(var key in ROOM_LIST[roomName].players) {players.push(ROOM_LIST[roomName].players[key].nickname)};
+      } else {
+        //room exist card already dealt  
+          if(ROOM_LIST[roomName].game.cardDealt == true){
+            socket.emit('joinResponse', {success:false, msg:'Game already in progress, ask members to start new Game'})
+          } else {
+          // If the room exists and the password / nickname are valid, proceed
+          let player = new Player(userName, roomName, socket)   // Create a new player
+          ROOM_LIST[roomName].players[socket.id] = player  
+          ROOM_LIST[roomName].playersArr.push(socket.id);     // Add player to room
+          //player.joinTeam()                                     // Distribute player to team
+          let players = [];
+          for(var key in ROOM_LIST[roomName].players) {players.push(ROOM_LIST[roomName].players[key].nickname)};
 
-        socket.emit('joinResponse', {success:true, msg:"", players: players})   // Tell client join was successful
-        gameUpdate(roomName)                                  // Update the game for everyone in this room
-        // Server Log
-        logStats(socket.id + "(" + player.nickname + ") JOINED '" + ROOM_LIST[player.room].room + "'(" + Object.keys(ROOM_LIST[player.room].players).length + ")")
+          socket.emit('joinResponse', {success:true, msg:"", players: players})   // Tell client join was successful
+          gameUpdate(roomName)                                  // Update the game for everyone in this room
+          // Server Log
+          logStats(socket.id + "(" + player.nickname + ") JOINED '" + ROOM_LIST[player.room].room + "'(" + Object.keys(ROOM_LIST[player.room].players).length + ")")
+        }
       }
     }
   }
@@ -307,21 +361,28 @@ function socketDisconnect(socket){
 
 
 // Update the gamestate for every client in the room that is passed to this function
-function gameUpdate(roomName){
+function gameUpdate(roomName, opts){
   let players = [];
-  for(var key in ROOM_LIST[roomName].players) {players.push(ROOM_LIST[roomName].players[key].nickname)};
+  ROOM_LIST[roomName].playersArr.forEach(playerId => {
+    console.log("playerId : " +playerId)
+    players.push(PLAYER_LIST[playerId].nickname)
+  });
   // Create data package to send to the client
   let gameState = {
     room: roomName,
     players: players,
     cardsOnTable: JSON.stringify(ROOM_LIST[roomName].game.cardsOnTable),
+    cardDealt: ROOM_LIST[roomName].game.cardDealt,
+    gameTableHidden: ROOM_LIST[roomName].game.gameTableHidden,
   }
-  for (let player in ROOM_LIST[roomName].players){ // For everyone in the passed room// Add specific clients team info
+  var playerObjs = ROOM_LIST[roomName].playersArr;
+  if(opts != undefined && opts['players']) playerObjs = opts['players'];
+  playerObjs.forEach(player => { // For everyone in the passed room// Add specific clients team info
     gameState.player = JSON.stringify(ROOM_LIST[roomName].players[player]);
     console.log("emmiting game state for player:" + player +" socket:" + SOCKET_LIST[player] + "gamestate player: " + gameState.player);
     console.log("gamestate cardsontable: " + gameState.cardsOnTable)
     SOCKET_LIST[player].emit('gameState', gameState)  // Pass data to the client
-  }
+  });
 }
 
 function dealCards(room){
@@ -338,6 +399,7 @@ function dealCards(room){
         });
     }
     gameUpdate(room.room);
+    room.game.cardDealt = true;
 }
 
 function showCards(roomName, cardSize){
@@ -345,6 +407,16 @@ function showCards(roomName, cardSize){
         SOCKET_LIST[player].emit('showCards', cardSize)  // Pass data to the client
     }
 }
+
+function newGame(room){
+  console.log("rooms" + room);
+  for (let player in room.players){
+    PLAYER_LIST[player].clear()
+  }
+  room.game = new Game();
+  gameUpdate(room.room);
+}
+
 
 function logStats(addition){
   let inLobby = Object.keys(SOCKET_LIST).length - Object.keys(PLAYER_LIST).length
