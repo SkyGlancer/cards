@@ -1,0 +1,180 @@
+
+> phaser3-project-template@1.1.0 start /var/cards/client
+> webpack-dev-server --config webpack/base.js --open --port 9000
+
+[34mℹ[39m [90m｢wds｣[39m: Project is running at http://0.0.0.0:9000/
+[34mℹ[39m [90m｢wds｣[39m: webpack output is served from /
+[34mℹ[39m [90m｢wds｣[39m: Content not from webpack is served from /var/cards/client
+Browserslist: caniuse-lite is outdated. Please run next command `npm update`
+[34mℹ[39m [90m｢wdm｣[39m: Hash: 4b2d73c5e7aca3ee1bde
+Version: webpack 4.41.2
+Time: 11019ms
+Built at: 08/06/2020 5:13:56 AM
+     Asset      Size  Chunks             Chunk Names
+index.html  2.99 KiB          [emitted]  
+   main.js    19 MiB    main  [emitted]  main
+Entrypoint main = main.js
+[0] multi (webpack)-dev-server/client?http://0.0.0.0:9000 ./src 40 bytes {main} [built]
+[./node_modules/ansi-html/index.js] 4.16 KiB {main} [built]
+[./node_modules/phaser/src/phaser.js] 2.48 KiB {main} [built]
+[./node_modules/socket.io-client/lib/index.js] 1.7 KiB {main} [built]
+[./node_modules/strip-ansi/index.js] 161 bytes {main} [built]
+[./node_modules/webpack-dev-server/client/index.js?http://0.0.0.0:9000] (webpack)-dev-server/client?http://0.0.0.0:9000 4.29 KiB {main} [built]
+[./node_modules/webpack-dev-server/client/overlay.js] (webpack)-dev-server/client/overlay.js 3.51 KiB {main} [built]
+[./node_modules/webpack-dev-server/client/socket.js] (webpack)-dev-server/client/socket.js 1.53 KiB {main} [built]
+[./node_modules/webpack-dev-server/client/utils/createSocketUrl.js] (webpack)-dev-server/client/utils/createSocketUrl.js 2.89 KiB {main} [built]
+[./node_modules/webpack-dev-server/client/utils/log.js] (webpack)-dev-server/client/utils/log.js 964 bytes {main} [built]
+[./node_modules/webpack-dev-server/client/utils/reloadApp.js] (webpack)-dev-server/client/utils/reloadApp.js 1.59 KiB {main} [built]
+[./node_modules/webpack-dev-server/client/utils/sendMessage.js] (webpack)-dev-server/client/utils/sendMessage.js 402 bytes {main} [built]
+[./node_modules/webpack/hot sync ^\.\/log$] (webpack)/hot sync nonrecursive ^\.\/log$ 170 bytes {main} [built]
+[./src/index.js] 3.98 KiB {main} [built]
+[./src/scenes/game.js] 15.5 KiB {main} [built]
+    + 1522 hidden modules
+Child html-webpack-plugin for "index.html":
+     1 asset
+    Entrypoint undefined = index.html
+    [./node_modules/html-webpack-plugin/lib/loader.js!./src/index.html] 3.26 KiB {0} [built]
+    [./node_modules/lodash/lodash.js] 528 KiB {0} [built]
+    [./node_modules/webpack/buildin/global.js] (webpack)/buildin/global.js 472 bytes {0} [built]
+    [./node_modules/webpack/buildin/module.js] (webpack)/buildin/module.js 497 bytes {0} [built]
+[34mℹ[39m [90m｢wdm｣[39m: Compiled successfully.
+[34mℹ[39m [90m｢wdm｣[39m: Compiling...
+[34mℹ[39m [90m｢wdm｣[39m: Hash: c3e3f788a25ef784ad93
+Version: webpack 4.41.2
+Time: 1054ms
+Built at: 08/06/2020 5:15:01 AM
+     Asset      Size  Chunks             Chunk Names
+index.html  2.99 KiB          [emitted]  
+   main.js    19 MiB    main  [emitted]  main
+Entrypoint main = main.js
+[./src/index.js] 3.98 KiB {main} [built]
+    + 1536 hidden modules
+Child html-webpack-plugin for "index.html":
+     1 asset
+    Entrypoint undefined = index.html
+       4 modules
+[34mℹ[39m [90m｢wdm｣[39m: Compiled successfully.
+Killed
+npm ERR! code ELIFECYCLE
+npm ERR! errno 137
+npm ERR! phaser3-project-template@1.1.0 start: `webpack-dev-server --config webpack/base.js --open --port 9000`
+npm ERR! Exit status 137
+npm ERR! 
+npm ERR! Failed at the phaser3-project-template@1.1.0 start script.
+npm ERR! This is probably not a problem with npm. There is likely additional logging output above.
+
+npm ERR! A complete log of this run can be found in:
+npm ERR!     /root/.npm/_logs/2020-08-06T05_15_52_770Z-debug.log
+
+> phaser3-project-template@1.1.0 start /var/cards/client
+> webpack-dev-server --config webpack/base.js --open --port 9000
+
+[34mℹ[39m [90m｢wds｣[39m: Project is running at http://0.0.0.0:9000/
+[34mℹ[39m [90m｢wds｣[39m: webpack output is served from /
+[34mℹ[39m [90m｢wds｣[39m: Content not from webpack is served from /var/cards/client
+Browserslist: caniuse-lite is outdated. Please run next command `npm update`
+[34mℹ[39m [90m｢wdm｣[39m: Hash: 69acdfeb7a59714cb1cb
+Version: webpack 4.41.2
+Time: 10992ms
+Built at: 08/06/2020 5:16:09 AM
+     Asset      Size  Chunks             Chunk Names
+index.html  2.99 KiB          [emitted]  
+   main.js    19 MiB    main  [emitted]  main
+Entrypoint main = main.js
+[0] multi (webpack)-dev-server/client?http://0.0.0.0:9000 ./src 40 bytes {main} [built]
+[./node_modules/ansi-html/index.js] 4.16 KiB {main} [built]
+[./node_modules/phaser/src/phaser.js] 2.48 KiB {main} [built]
+[./node_modules/socket.io-client/lib/index.js] 1.7 KiB {main} [built]
+[./node_modules/strip-ansi/index.js] 161 bytes {main} [built]
+[./node_modules/webpack-dev-server/client/index.js?http://0.0.0.0:9000] (webpack)-dev-server/client?http://0.0.0.0:9000 4.29 KiB {main} [built]
+[./node_modules/webpack-dev-server/client/overlay.js] (webpack)-dev-server/client/overlay.js 3.51 KiB {main} [built]
+[./node_modules/webpack-dev-server/client/socket.js] (webpack)-dev-server/client/socket.js 1.53 KiB {main} [built]
+[./node_modules/webpack-dev-server/client/utils/createSocketUrl.js] (webpack)-dev-server/client/utils/createSocketUrl.js 2.89 KiB {main} [built]
+[./node_modules/webpack-dev-server/client/utils/log.js] (webpack)-dev-server/client/utils/log.js 964 bytes {main} [built]
+[./node_modules/webpack-dev-server/client/utils/reloadApp.js] (webpack)-dev-server/client/utils/reloadApp.js 1.59 KiB {main} [built]
+[./node_modules/webpack-dev-server/client/utils/sendMessage.js] (webpack)-dev-server/client/utils/sendMessage.js 402 bytes {main} [built]
+[./node_modules/webpack/hot sync ^\.\/log$] (webpack)/hot sync nonrecursive ^\.\/log$ 170 bytes {main} [built]
+[./src/index.js] 3.98 KiB {main} [built]
+[./src/scenes/game.js] 15.5 KiB {main} [built]
+    + 1522 hidden modules
+Child html-webpack-plugin for "index.html":
+     1 asset
+    Entrypoint undefined = index.html
+    [./node_modules/html-webpack-plugin/lib/loader.js!./src/index.html] 3.26 KiB {0} [built]
+    [./node_modules/lodash/lodash.js] 528 KiB {0} [built]
+    [./node_modules/webpack/buildin/global.js] (webpack)/buildin/global.js 472 bytes {0} [built]
+    [./node_modules/webpack/buildin/module.js] (webpack)/buildin/module.js 497 bytes {0} [built]
+[34mℹ[39m [90m｢wdm｣[39m: Compiled successfully.
+[34mℹ[39m [90m｢wdm｣[39m: Compiling...
+[34mℹ[39m [90m｢wdm｣[39m: Hash: c749c2bbf93bd3290eff
+Version: webpack 4.41.2
+Time: 961ms
+Built at: 08/06/2020 5:26:43 AM
+     Asset      Size  Chunks             Chunk Names
+index.html  2.99 KiB          [emitted]  
+   main.js    19 MiB    main  [emitted]  main
+Entrypoint main = main.js
+[./src/index.js] 3.99 KiB {main} [built]
+    + 1536 hidden modules
+Child html-webpack-plugin for "index.html":
+     1 asset
+    Entrypoint undefined = index.html
+       4 modules
+[34mℹ[39m [90m｢wdm｣[39m: Compiled successfully.
+[34mℹ[39m [90m｢wdm｣[39m: Compiling...
+[34mℹ[39m [90m｢wdm｣[39m: Hash: 2138ffd703eb2653ec8a
+Version: webpack 4.41.2
+Time: 771ms
+Built at: 08/06/2020 5:27:26 AM
+     Asset      Size  Chunks             Chunk Names
+index.html  2.99 KiB          [emitted]  
+   main.js    19 MiB    main  [emitted]  main
+Entrypoint main = main.js
+[./src/index.js] 3.98 KiB {main} [built]
+    + 1536 hidden modules
+Child html-webpack-plugin for "index.html":
+     1 asset
+    Entrypoint undefined = index.html
+       4 modules
+[34mℹ[39m [90m｢wdm｣[39m: Compiled successfully.
+
+> phaser3-project-template@1.1.0 start /var/cards/client
+> webpack-dev-server --config webpack/base.js --open --port 9000
+
+[34mℹ[39m [90m｢wds｣[39m: Project is running at http://0.0.0.0:9000/
+[34mℹ[39m [90m｢wds｣[39m: webpack output is served from /
+[34mℹ[39m [90m｢wds｣[39m: Content not from webpack is served from /var/cards/client
+Browserslist: caniuse-lite is outdated. Please run next command `npm update`
+[34mℹ[39m [90m｢wdm｣[39m: wait until bundle finished: /
+[34mℹ[39m [90m｢wdm｣[39m: Hash: 2138ffd703eb2653ec8a
+Version: webpack 4.41.2
+Time: 10840ms
+Built at: 08/06/2020 5:27:53 AM
+     Asset      Size  Chunks             Chunk Names
+index.html  2.99 KiB          [emitted]  
+   main.js    19 MiB    main  [emitted]  main
+Entrypoint main = main.js
+[0] multi (webpack)-dev-server/client?http://0.0.0.0:9000 ./src 40 bytes {main} [built]
+[./node_modules/ansi-html/index.js] 4.16 KiB {main} [built]
+[./node_modules/phaser/src/phaser.js] 2.48 KiB {main} [built]
+[./node_modules/socket.io-client/lib/index.js] 1.7 KiB {main} [built]
+[./node_modules/strip-ansi/index.js] 161 bytes {main} [built]
+[./node_modules/webpack-dev-server/client/index.js?http://0.0.0.0:9000] (webpack)-dev-server/client?http://0.0.0.0:9000 4.29 KiB {main} [built]
+[./node_modules/webpack-dev-server/client/overlay.js] (webpack)-dev-server/client/overlay.js 3.51 KiB {main} [built]
+[./node_modules/webpack-dev-server/client/socket.js] (webpack)-dev-server/client/socket.js 1.53 KiB {main} [built]
+[./node_modules/webpack-dev-server/client/utils/createSocketUrl.js] (webpack)-dev-server/client/utils/createSocketUrl.js 2.89 KiB {main} [built]
+[./node_modules/webpack-dev-server/client/utils/log.js] (webpack)-dev-server/client/utils/log.js 964 bytes {main} [built]
+[./node_modules/webpack-dev-server/client/utils/reloadApp.js] (webpack)-dev-server/client/utils/reloadApp.js 1.59 KiB {main} [built]
+[./node_modules/webpack-dev-server/client/utils/sendMessage.js] (webpack)-dev-server/client/utils/sendMessage.js 402 bytes {main} [built]
+[./node_modules/webpack/hot sync ^\.\/log$] (webpack)/hot sync nonrecursive ^\.\/log$ 170 bytes {main} [built]
+[./src/index.js] 3.98 KiB {main} [built]
+[./src/scenes/game.js] 15.5 KiB {main} [built]
+    + 1522 hidden modules
+Child html-webpack-plugin for "index.html":
+     1 asset
+    Entrypoint undefined = index.html
+    [./node_modules/html-webpack-plugin/lib/loader.js!./src/index.html] 3.26 KiB {0} [built]
+    [./node_modules/lodash/lodash.js] 528 KiB {0} [built]
+    [./node_modules/webpack/buildin/global.js] (webpack)/buildin/global.js 472 bytes {0} [built]
+    [./node_modules/webpack/buildin/module.js] (webpack)/buildin/module.js 497 bytes {0} [built]
+[34mℹ[39m [90m｢wdm｣[39m: Compiled successfully.
