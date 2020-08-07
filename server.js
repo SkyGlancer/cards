@@ -71,6 +71,8 @@ class Game {
         this.gameTableHidden = false;
         this.showRandomCards = false;
         this.lastPlayer = null;
+        this.lastPlayerId = null;
+        this.autoSubmit = false;
     }
 
     drawOneCard(){
@@ -215,13 +217,19 @@ io.on('connection', function (socket) {
     });
 
     socket.on('cardPlayed', function (playerJSON) {
-        let player = JSON.parse(playerJSON);
-        PLAYER_LIST[player.id].hand = player.hand;
-        PLAYER_LIST[player.id].lastDealt = player.currentDealt;
-        PLAYER_LIST[player.id].currentDealt = [];
-        player.currentDealt.forEach(card => ROOM_LIST[player.room].game.cardsOnTable.push(card));
-        ROOM_LIST[player.room].game.lastPlayer = player.nickname;
-        gameUpdate(player.room);
+        let player = PLAYER_LIST[socket.id]; 
+        let playerRemote = JSON.parse(playerJSON);
+        PLAYER_LIST[player.id].hand = playerRemote.hand;
+        if(playerRemote.currentDealt.length >0) {
+          playerRemote.currentDealt.forEach(card => ROOM_LIST[player.room].game.cardsOnTable.push(card));
+          PLAYER_LIST[player.id].lastDealt = playerRemote.currentDealt;
+          PLAYER_LIST[player.id].currentDealt = [];
+          ROOM_LIST[player.room].game.lastPlayer = playerRemote.nickname;
+          ROOM_LIST[player.room].game.lastPlayerId = player.id;
+          gameUpdate(player.room);
+        }
+        
+        
     });
 
     socket.on('pick', function(number) {
@@ -242,7 +250,7 @@ io.on('connection', function (socket) {
 
     socket.on('showLast', function() {
         let player = PLAYER_LIST[socket.id]; 
-        if(socket.id == ROOM_LIST[player.room].game.lastPlayer){
+        if(ROOM_LIST[player.room].game.lastPlayerId && socket.id == ROOM_LIST[player.room].game.lastPlayerId){
             showCards(player.room, player.lastDealt.length)
         }
 
@@ -318,6 +326,18 @@ io.on('connection', function (socket) {
       
     });
 
+
+    socket.on('autoSubmit', function() {
+      let player = PLAYER_LIST[socket.id];
+      console.log('ROOM_LIST[player.room].game.autoSubmit' + ROOM_LIST[player.room].game.autoSubmit)
+      if(ROOM_LIST[player.room].game.autoSubmit) {
+        ROOM_LIST[player.room].game.autoSubmit = false;
+      } else {
+        ROOM_LIST[player.room].game.autoSubmit = true;
+      }
+      console.log('ROOM_LIST[player.room].game.autoSubmit' + ROOM_LIST[player.room].game.autoSubmit)
+      gameUpdate(player.room);
+    });
 
 });
 
@@ -483,12 +503,13 @@ function gameUpdate(roomName, opts){
     randomCard: randomCard,
     showRandomCards: ROOM_LIST[roomName].game.showRandomCards,
     lastPlayer: ROOM_LIST[roomName].game.lastPlayer,
+    autoSubmit: ROOM_LIST[roomName].game.autoSubmit,
   }
   var playerObjs = ROOM_LIST[roomName].playersArr;
   if(opts != undefined && opts['players']) playerObjs = opts['players'];
   playerObjs.forEach(player => { // For everyone in the passed room// Add specific clients team info
     gameState.player = JSON.stringify(ROOM_LIST[roomName].players[player]);
-    console.log("emmiting game state for player:" + player +" socket:" + SOCKET_LIST[player] + "gamestate player: " + gameState.player + "random:" + gameState.randomCard);
+    console.log("emmiting game state for player:" + player + "autoSubmit" + gameState.autoSubmit +" socket:" + SOCKET_LIST[player] + "gamestate player: " + gameState.player + "random:" + gameState.randomCard);
     console.log("gamestate cardsontable: " + gameState.cardsOnTable)
     SOCKET_LIST[player].emit('gameState', gameState)  // Pass data to the client
   });

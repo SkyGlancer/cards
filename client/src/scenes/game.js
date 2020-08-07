@@ -113,6 +113,7 @@ export default class Game extends Phaser.Scene {
         this.ConfigureShowRandomFromDeck(self);
         this.ConfigureHideRandomFromDeck(self);
         this.ConfigureDrawFromDeck(self);
+        this.configureAutoSubmitText(self);
 
         this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
             gameObject.x = dragX;
@@ -156,6 +157,9 @@ export default class Game extends Phaser.Scene {
             console.log("hand: " + self.player.hand)
             console.log("currentDealt: " + self.player.currentDealt);
             console.log("lastDealt: " + self.player.lastDealt);
+            if(self.autoSubmit){
+                self.submit();
+            }
 
             //self.socket.emit('cardPlayed', gameObject, self.isPlayerA);
         })
@@ -180,6 +184,7 @@ export default class Game extends Phaser.Scene {
           }
 
           self.showRandomCards = data.showRandomCards;
+          self.autoSubmit = data.autoSubmit;
           self.updateGame();
         });
 
@@ -232,16 +237,23 @@ export default class Game extends Phaser.Scene {
         let self = this;
         this.players.forEach(player => {
             if(self.lastPlayer && self.lastPlayer == player) {
-                players = players + "Last Player Name: "  + player;
+                players = players + " <<Player Name: "  + player +">> ";
             } else {
                 players = players + " Player Name: "  + player;
             }
         });
+        if(this.gameTableHidden) {
+            players = players + " tablehidden"
+        }
+        if(this.autoSubmit){
+            players = players + " autoSubmit : on"
+        }
         if(this.playerText){
             this.playerText.setText(players);
         } else {
             this.playerText = this.add.text(0, 0, [players]).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff');
         }
+
         
     }
 
@@ -334,19 +346,7 @@ export default class Game extends Phaser.Scene {
         this.submitText = this.add.text(30, 75, ['Submit Hand']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.submitText.on('pointerdown', function () {
             console.log("submitted");
-
-            var cardObjs = self.player.currentDealt;
-            self.player.currentDealt = [];
-            //change game object to cards
-           
-            cardObjs.forEach(gameObject => {
-                self.player.currentDealt.push(gameObject.card);
-            })
-            
-            console.log("hand: " + self.player.hand)
-            console.log("currentDealt: " + self.player.currentDealt);
-            console.log("lastDealt: " + self.player.lastDealt);
-            self.socket.emit('cardPlayed', JSON.stringify(self.player));
+            self.submit(this)
         });
         this.submitText.on('pointerover', function () {
             self.submitText.setColor('#ff69b4');
@@ -357,11 +357,29 @@ export default class Game extends Phaser.Scene {
         })
     }
 
+    submit(){
+            var self = this;
+            var cardObjs = self.player.currentDealt;
+            self.player.currentDealt = [];
+            self.backupHand = [];
+            //change game object to cards
+           
+            cardObjs.forEach(gameObject => {
+                self.player.currentDealt.push(gameObject.card);
+            })
+            
+            console.log("hand: " + self.player.hand)
+            console.log("currentDealt: " + self.player.currentDealt);
+            console.log("lastDealt: " + self.player.lastDealt);
+            self.socket.emit('cardPlayed', JSON.stringify(self.player));
+    }
+
     configureRevert(self) {
         this.revertText = this.add.text(230, 75, ['Revert last Move']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.revertText.on('pointerdown', function () {
             console.log("reverted");
             //add back to hand
+            if(self.self.player.currentDealt.length>0){
             self.player.hand = self.backupHand;
             self.player.currentDealt.forEach(gameObject => {
                 self.dropZone.data.values.cards--;
@@ -373,6 +391,7 @@ export default class Game extends Phaser.Scene {
             console.log("hand: " + self.player.hand)
             console.log("currentDealt: " + self.player.currentDealt);
             console.log("lastDealt: " + self.player.lastDealt);
+           }
         });
         this.revertText.on('pointerover', function () {
             self.revertText.setColor('#ff69b4');
@@ -486,6 +505,21 @@ export default class Game extends Phaser.Scene {
 
         this.PickFourFromTable.on('pointerout', function () {
             self.PickFourFromTable.setColor('#00ffff');
+        })
+    }
+
+    configureAutoSubmitText(self) {
+        this.AutoSubmitText = this.add.text(830, 100, ['AutoSubmit']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.AutoSubmitText.on('pointerdown', function () {
+            console.log("autoSubmit all");
+            self.socket.emit('autoSubmit');
+        });
+        this.AutoSubmitText.on('pointerover', function () {
+            self.AutoSubmitText.setColor('#ff69b4');
+        })
+
+        this.AutoSubmitText.on('pointerout', function () {
+            self.AutoSubmitText.setColor('#00ffff');
         })
     }
 
