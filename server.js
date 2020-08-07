@@ -64,11 +64,12 @@ class Player {
 class Game {
     constructor(){
         this.decks = [] ;
-        this.decks.push(new Deck());
-        this.decks.forEach(deck => deck.shuffle());
+        //this.decks.push(new Deck());
+        //this.decks.forEach(deck => deck.shuffle());
         this.cardsOnTable = [];
         this.cardDealt = false;
         this.gameTableHidden = false;
+        this.showRandomCards = false;
         //this.lastPlayer
     }
 }
@@ -103,14 +104,6 @@ class Deck {
   constructor() {
     this.cards = [];
     this.drawnCards = [];
-    var images = "10C.jpg 10H.jpg 2C.jpg 2H.jpg 3C.jpg 3H.jpg 4C.jpg 4H.jpg 5C.jpg 5H.jpg 6C.jpg 6H.jpg 7C.jpg 7H.jpg 8C.jpg 8H.jpg 9C.jpg 9H.jpg AC.jpg AH.jpg JC.jpg JH.jpg KC.jpg KH.jpg QC.jpg QH.jpg 10D.jpg 10S.jpg 2D.jpg 2S.jpg 3D.jpg 3S.jpg 4D.jpg 4S.jpg 5D.jpg 5S.jpg 6D.jpg 6S.jpg 7D.jpg 7S.jpg 8D.jpg 8S.jpg 9D.jpg 9S.jpg AD.jpg AS.jpg JD.jpg JS.jpg KD.jpg KS.jpg QD.jpg QS.jpg"
-    var res = images.split(" ");
-    var dir = "src/assets/playingCards/"
-    this.size = 52;
-
-    res.forEach( file => {
-       this.cards.push(new Card(dir+file,'src/assets/standard_card_back_blue.png'));
-    });
   }
 
   shuffle() {
@@ -131,6 +124,38 @@ class Deck {
   }
 
 }
+class UnoDeck extends Deck {
+  constructor() {
+    super();
+    var images = "Blue_0.png Blue_6.png Blue_Skip.png Green_5.png Green_Reverse.png Red_4.png Red_Draw.png Yellow_1.png Yellow_7.png Blue_1.png Blue_7.png Green_0.png Green_6.png Green_Skip.png Red_5.png Red_Reverse.png Yellow_2.png Yellow_8.png Blue_2.png Blue_8.png Green_1.png Green_7.png Red_0.png Red_6.png Red_Skip.png Yellow_3.png Yellow_9.png Blue_3.png Blue_9.png Green_2.png Green_8.png Red_1.png Red_7.png Wild.png Yellow_4.png Yellow_Draw.png Blue_4.png Blue_Draw.png Green_3.png Green_9.png Red_2.png Red_8.png Wild_Draw.png Yellow_5.png Yellow_Reverse.png Blue_5.png Blue_Reverse.png Green_4.png Green_Draw.png Red_3.png Red_9.png Yellow_0.png Yellow_6.png Yellow_Skip.png"
+    var res = images.split(" ");
+    var dir = "src/assets/uno/"
+    this.size = 0;
+    res.forEach( file => {
+       this.cards.push(new Card(dir+file,'src/assets/uno/Deck.png'));
+    });
+    super.shuffle();
+  }
+  
+
+}
+
+class StandardDeck extends Deck {
+  constructor() {
+    super();
+    var images = "10C.jpg 10H.jpg 2C.jpg 2H.jpg 3C.jpg 3H.jpg 4C.jpg 4H.jpg 5C.jpg 5H.jpg 6C.jpg 6H.jpg 7C.jpg 7H.jpg 8C.jpg 8H.jpg 9C.jpg 9H.jpg AC.jpg AH.jpg JC.jpg JH.jpg KC.jpg KH.jpg QC.jpg QH.jpg 10D.jpg 10S.jpg 2D.jpg 2S.jpg 3D.jpg 3S.jpg 4D.jpg 4S.jpg 5D.jpg 5S.jpg 6D.jpg 6S.jpg 7D.jpg 7S.jpg 8D.jpg 8S.jpg 9D.jpg 9S.jpg AD.jpg AS.jpg JD.jpg JS.jpg KD.jpg KS.jpg QD.jpg QS.jpg"
+    var res = images.split(" ");
+    var dir = "src/assets/playingCards/"
+    this.size = 52;
+
+    res.forEach( file => {
+       this.cards.push(new Card(dir+file,'src/assets/standard_card_back_blue.png'));
+    });
+    super.shuffle();
+  }
+}
+
+
 
 
 io.on('connection', function (socket) {
@@ -230,6 +255,41 @@ io.on('connection', function (socket) {
       ROOM_LIST[player.room].game.gameTableHidden = false;
       gameUpdate(player.room);
     });
+
+    socket.on('MoveToDeck', function() {
+      let player = PLAYER_LIST[socket.id];
+      ROOM_LIST[player.room].game.cardsOnTable.forEach(card => ROOM_LIST[player.room].game.decks[0].cards.push(card));
+      ROOM_LIST[player.room].game.cardsOnTable = [];
+      gameUpdate(player.room);
+    });
+
+    socket.on('RandomFromDeck', function() {
+      let player = PLAYER_LIST[socket.id];
+      ROOM_LIST[player.room].game.showRandomCards = true;
+      gameUpdate(player.room);
+    });
+
+    socket.on('HideRandomFromDeck', function() {
+      let player = PLAYER_LIST[socket.id];
+      ROOM_LIST[player.room].game.showRandomCards = false;
+      gameUpdate(player.room);
+    });
+
+    socket.on('AddStandardDeck', function() {
+      let player = PLAYER_LIST[socket.id];
+      ROOM_LIST[player.room].game.decks.push(new StandardDeck());
+      ROOM_LIST[player.room].game.decks.forEach(deck => deck.shuffle());
+      //ROOM_LIST[player.room].game.decks[ROOM_LIST[player.room].game.decks.length-1].suffle();
+      gameUpdate(player.room);
+    });
+
+    socket.on('AddUnoDeck', function() {
+      let player = PLAYER_LIST[socket.id];
+      ROOM_LIST[player.room].game.decks.push(new UnoDeck());
+      //ROOM_LIST[player.room].game.decks[ROOM_LIST[player.room].game.decks.length-1].suffle();
+      gameUpdate(player.room);
+    });
+
 
 });
 
@@ -380,12 +440,21 @@ function gameUpdate(roomName, opts){
     players.push(PLAYER_LIST[playerId].nickname)
   });
   // Create data package to send to the client
+  var randomCard;
+  if( ROOM_LIST[roomName].game.decks.length ==0 || ROOM_LIST[roomName].game.decks[0].cards.length == 0){
+    randomCard = null;
+  } else {
+    randomCard= JSON.stringify(ROOM_LIST[roomName].game.decks[0].cards[Math.floor(Math.random() * Math.floor(ROOM_LIST[roomName].game.decks[0].cards.length))]);
+  }
   let gameState = {
     room: roomName,
     players: players,
     cardsOnTable: JSON.stringify(ROOM_LIST[roomName].game.cardsOnTable),
     cardDealt: ROOM_LIST[roomName].game.cardDealt,
     gameTableHidden: ROOM_LIST[roomName].game.gameTableHidden,
+    deckSize: ROOM_LIST[roomName].game.decks.length,
+    randomCard: randomCard,
+    showRandomCards: ROOM_LIST[roomName].game.showRandomCards,
   }
   var playerObjs = ROOM_LIST[roomName].playersArr;
   if(opts != undefined && opts['players']) playerObjs = opts['players'];
@@ -401,16 +470,17 @@ function dealCards(room){
     var playerCount = 0;
     for(var key in room.players){ playerCount++; };
     console.log(playerCount +":playerCount");
-    for(var key in room.players){
+    
         room.game.decks.forEach(deck => {
-            var handSize = parseInt(deck.size/playerCount);
+            var handSize = parseInt(deck.cards.length/playerCount);
             console.log("handsize: " + handSize + "deck size: " + deck.size);
-            for (let i = 0; i < handSize; i++) {
-               var card = deck.drawCard();
-               if(card) room.players[key].hand.push(card);
-            }
+            for(var key in room.players){
+              for (let i = 0; i < handSize; i++) {
+                 var card = deck.drawCard();
+                 if(card) room.players[key].hand.push(card);
+              }
+          }
         });
-    }
     gameUpdate(room.room);
     room.game.cardDealt = true;
 }
