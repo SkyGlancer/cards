@@ -48,6 +48,8 @@ export default class Game extends Phaser.Scene {
 
         this.randomCard = null;
         this.showRandomCards = false;
+        this.playerText = null;
+        this.lastPlayer = null;
 
         let self = this;
 
@@ -110,6 +112,7 @@ export default class Game extends Phaser.Scene {
         this.configureMoveToDeck(self);
         this.ConfigureShowRandomFromDeck(self);
         this.ConfigureHideRandomFromDeck(self);
+        this.ConfigureDrawFromDeck(self);
 
         this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
             gameObject.x = dragX;
@@ -168,6 +171,7 @@ export default class Game extends Phaser.Scene {
           self.cardsOnTable = JSON.parse(data.cardsOnTable);
           self.cardDealt = data.cardDealt;
           self.deckSize = data.deckSize;
+          self.lastPlayer = data.lastPlayer;
           console.log("random card" +data.randomCard);
           if(data.randomCard){
             self.randomCard = JSON.parse(data.randomCard);
@@ -217,7 +221,7 @@ export default class Game extends Phaser.Scene {
         this.deck = [];
         if(this.randomCard){
             var cardCopy = new Card(this.randomCard.imageUrl, self.standardCardBack);
-            cardCopy.render(self, 1300, 100, this.randomCard.imageUrl);
+            cardCopy.render(self, 1300, 100, this.randomCard.imageUrl).disableInteractive();
             if(!this.showRandomCards) cardCopy.hide();
             this.deck.push(cardCopy);
         } 
@@ -225,8 +229,20 @@ export default class Game extends Phaser.Scene {
 
     showPlayers(){
         var players = " ";
-        this.players.forEach(player => players = players + " Player Name: "  + player);
-        this.add.text(0, 0, [players]).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        let self = this;
+        this.players.forEach(player => {
+            if(self.lastPlayer && self.lastPlayer == player) {
+                players = players + "Last Player Name: "  + player;
+            } else {
+                players = players + " Player Name: "  + player;
+            }
+        });
+        if(this.playerText){
+            this.playerText.setText(players);
+        } else {
+            this.playerText = this.add.text(0, 0, [players]).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff');
+        }
+        
     }
 
     
@@ -537,6 +553,20 @@ export default class Game extends Phaser.Scene {
         })
     }
 
-    
+    ConfigureDrawFromDeck(self){
+        this.DrawFromDeck = this.add.text(830, 125, ['DrawFromDeck']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.DrawFromDeck.on('pointerdown', function () {
+            console.log("DrawFromDeck");
+            self.socket.emit('DrawFromDeck');
+        });
+        this.DrawFromDeck.on('pointerover', function () {
+            self.DrawFromDeck.setColor('#ff69b4');
+        })
+
+        this.DrawFromDeck.on('pointerout', function () {
+            self.DrawFromDeck.setColor('#00ffff');
+        })
+    }
+
     
 }

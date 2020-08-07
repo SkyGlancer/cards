@@ -70,7 +70,23 @@ class Game {
         this.cardDealt = false;
         this.gameTableHidden = false;
         this.showRandomCards = false;
-        //this.lastPlayer
+        this.lastPlayer = null;
+    }
+
+    drawOneCard(){
+      this.suffleDecks();
+      var card = null;
+      for(let i = 0; i < this.decks.length; i++){
+          card = this.decks[i].drawCard();
+          if(card){
+            break;
+          }
+      }
+      return card;
+    }
+
+    suffleDecks(){
+      this.decks.forEach(deck => deck.shuffle());
     }
 }
 
@@ -119,7 +135,7 @@ class Deck {
   
   drawCard(){
       var tmp = this.cards.pop();
-      this.drawnCards.push(tmp);
+      if(tmp) this.drawnCards.push(tmp);
       return tmp;
   }
 
@@ -204,7 +220,7 @@ io.on('connection', function (socket) {
         PLAYER_LIST[player.id].lastDealt = player.currentDealt;
         PLAYER_LIST[player.id].currentDealt = [];
         player.currentDealt.forEach(card => ROOM_LIST[player.room].game.cardsOnTable.push(card));
-        ROOM_LIST[player.room].game.lastPlayer = player.id;
+        ROOM_LIST[player.room].game.lastPlayer = player.nickname;
         gameUpdate(player.room);
     });
 
@@ -288,6 +304,18 @@ io.on('connection', function (socket) {
       ROOM_LIST[player.room].game.decks.push(new UnoDeck());
       //ROOM_LIST[player.room].game.decks[ROOM_LIST[player.room].game.decks.length-1].suffle();
       gameUpdate(player.room);
+    });
+
+    socket.on('DrawFromDeck', function() {
+      let player = PLAYER_LIST[socket.id];
+      var card = ROOM_LIST[player.room].game.drawOneCard();
+ 
+      if(card){
+            player.hand.push(card);
+            console.log("player id for draw" + player.id);
+            gameUpdate(player.room, {'players' : [player.id]});
+      }
+      
     });
 
 
@@ -440,12 +468,11 @@ function gameUpdate(roomName, opts){
     players.push(PLAYER_LIST[playerId].nickname)
   });
   // Create data package to send to the client
-  var randomCard;
-  if( ROOM_LIST[roomName].game.decks.length ==0 || ROOM_LIST[roomName].game.decks[0].cards.length == 0){
-    randomCard = null;
-  } else {
-    randomCard= JSON.stringify(ROOM_LIST[roomName].game.decks[0].cards[Math.floor(Math.random() * Math.floor(ROOM_LIST[roomName].game.decks[0].cards.length))]);
+  var randomCard = ROOM_LIST[roomName].game.drawOneCard();;
+  if(randomCard){
+    randomCard= JSON.stringify(randomCard);
   }
+
   let gameState = {
     room: roomName,
     players: players,
@@ -455,12 +482,13 @@ function gameUpdate(roomName, opts){
     deckSize: ROOM_LIST[roomName].game.decks.length,
     randomCard: randomCard,
     showRandomCards: ROOM_LIST[roomName].game.showRandomCards,
+    lastPlayer: ROOM_LIST[roomName].game.lastPlayer,
   }
   var playerObjs = ROOM_LIST[roomName].playersArr;
   if(opts != undefined && opts['players']) playerObjs = opts['players'];
   playerObjs.forEach(player => { // For everyone in the passed room// Add specific clients team info
     gameState.player = JSON.stringify(ROOM_LIST[roomName].players[player]);
-    console.log("emmiting game state for player:" + player +" socket:" + SOCKET_LIST[player] + "gamestate player: " + gameState.player);
+    console.log("emmiting game state for player:" + player +" socket:" + SOCKET_LIST[player] + "gamestate player: " + gameState.player + "random:" + gameState.randomCard);
     console.log("gamestate cardsontable: " + gameState.cardsOnTable)
     SOCKET_LIST[player].emit('gameState', gameState)  // Pass data to the client
   });
