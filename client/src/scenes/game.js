@@ -39,22 +39,25 @@ export default class Game extends Phaser.Scene {
         //console.log(this.cameras.main);
         var camera = this.cameras.main;
         if (this.game.input.activePointer.isDown) { 
-            console.log("pointer down")
-              if (this.game.origDragPoint) {    
-                // move the camera by the amount the mouse has moved since last update
-                var x = camera.x;
-                var y = camera.y;
-                //console.log(x + "" + y)
-                x += -this.game.origDragPoint.x + this.game.input.activePointer.position.x;
-                y += -this.game.origDragPoint.y + this.game.input.activePointer.position.y;
-                camera.setPosition(x,y);
-              }
-              // set new drag origin to current position
-              this.game.origDragPoint = this.game.input.activePointer.position.clone();
-            }
-            else {
+            //console.log("pointer down:" + (this.game.input.activePointer.position.y - camera.y))
+              if(((this.game.input.activePointer.position.y - camera.y) < 200) || ((this.game.input.activePointer.position.y - camera.y) >800) ){
+                  if (this.game.origDragPoint) {    
+                    // move the camera by the amount the mouse has moved since last update
+                    var x = camera.x;
+                    var y = camera.y;
+                    //console.log(x + "" + y)
+                    x += -this.game.origDragPoint.x + this.game.input.activePointer.position.x;
+                    y += -this.game.origDragPoint.y + this.game.input.activePointer.position.y;
+                    camera.setPosition(x,y);
+                  }
+                  // set new drag origin to current position
+                  this.game.origDragPoint = this.game.input.activePointer.position.clone();
+                }
+        }
+        else {
               this.game.origDragPoint = null;
         }
+    
     }
 
     create() {
@@ -102,14 +105,6 @@ export default class Game extends Phaser.Scene {
             self.dealText.disableInteractive();
         })
 
-        this.socket.on('cardPlayed', function (gameObject, isPlayerA) {
-                /*let sprite = gameObject.textureKey;
-                self.opponentCards.shift().destroy();
-                self.dropZone.data.values.cards++;
-                let card = new Card(self);
-                card.show(self, ((self.dropZone.x - 350) + (self.dropZone.data.values.cards * 50)), (self.dropZone.y), sprite).disableInteractive();
-             */
-        })
 
         this.backupHand = [];
         this.gameObjectsOnTable = [];
