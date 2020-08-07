@@ -24,6 +24,7 @@ export default class Game extends Phaser.Scene {
            this.load.image(dir+file,dir+file);
         });
         this.load.image('src/assets/uno/Deck.png', 'src/assets/uno/Deck.png');
+        this.load.image('background','src/assets/Table_0.jpg');
         //this.load.image('cyanCardFront', 'src/assets/CyanCardFront.png');
         //this.load.image('cyanCardBack', 'src/assets/CyanCardBack.png');
         //this.load.image('magentaCardFront', 'src/assets/MagentaCardFront.png');
@@ -34,8 +35,35 @@ export default class Game extends Phaser.Scene {
 
     }
 
-    create() {
+   update() {
+        //console.log(this.cameras.main);
+        var camera = this.cameras.main;
+        if (this.game.input.activePointer.isDown) { 
+            console.log("pointer down")
+              if (this.game.origDragPoint) {    
+                // move the camera by the amount the mouse has moved since last update
+                var x = camera.x;
+                var y = camera.y;
+                //console.log(x + "" + y)
+                x += -this.game.origDragPoint.x + this.game.input.activePointer.position.x;
+                y += -this.game.origDragPoint.y + this.game.input.activePointer.position.y;
+                camera.setPosition(x,y);
+              }
+              // set new drag origin to current position
+              this.game.origDragPoint = this.game.input.activePointer.position.clone();
+            }
+            else {
+              this.game.origDragPoint = null;
+        }
+    }
 
+    create() {
+        
+        let image = this.add.image(this.cameras.main.width / 2, this.cameras.main.height / 2, 'background')
+        let scaleX = this.cameras.main.width / image.width
+        let scaleY = this.cameras.main.height / image.height
+        let scale = Math.max(scaleX, scaleY)
+        image.setScale(scale).setScrollFactor(0)
         console.log("check");
         this.isPlayerA = false;
         this.opponentCards = [];
@@ -194,6 +222,7 @@ export default class Game extends Phaser.Scene {
             }
         });
     }
+
 
     updateGame(){
         let self = this;
