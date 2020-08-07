@@ -58,12 +58,6 @@ export default class Game extends Phaser.Scene {
     }
 
     create() {
-        
-        let image = this.add.image(this.cameras.main.width / 2, this.cameras.main.height / 2, 'background')
-        let scaleX = this.cameras.main.width / image.width
-        let scaleY = this.cameras.main.height / image.height
-        let scale = Math.max(scaleX, scaleY)
-        image.setScale(scale).setScrollFactor(0)
         console.log("check");
         this.isPlayerA = false;
         this.opponentCards = [];
