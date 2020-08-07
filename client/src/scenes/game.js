@@ -24,7 +24,7 @@ export default class Game extends Phaser.Scene {
            this.load.image(dir+file,dir+file);
         });
         this.load.image('src/assets/uno/Deck.png', 'src/assets/uno/Deck.png');
-        this.load.image('background','src/assets/Table_0.jpg');
+        //this.load.image('background','src/assets/Table_0.jpg');
         //this.load.image('cyanCardFront', 'src/assets/CyanCardFront.png');
         //this.load.image('cyanCardBack', 'src/assets/CyanCardBack.png');
         //this.load.image('magentaCardFront', 'src/assets/MagentaCardFront.png');
@@ -36,35 +36,65 @@ export default class Game extends Phaser.Scene {
     }
 
    update() {
-        //console.log(this.cameras.main);
+        ////console.log(this.cameras.main);
         var camera = this.cameras.main;
-        if (this.game.input.activePointer.isDown) { 
-            //console.log("pointer down:" + (this.game.input.activePointer.position.y - camera.y))
-              if(((this.game.input.activePointer.position.y - camera.y) < 200) || ((this.game.input.activePointer.position.y - camera.y) >800) ){
-                  if (this.game.origDragPoint) {    
+        /*
+        this.game.origDragPoint = null;
+        this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
+            if(gameObject.constructor.name == 'Sprite'){
+                //console.log("gameo")
+                //console.log(gameObject)
+                
+            } else {
+                //console.log(gameObject)
+                if (this.game.origDragPoint) {    
                     // move the camera by the amount the mouse has moved since last update
                     var x = camera.x;
                     var y = camera.y;
-                    //console.log(x + "" + y)
+                    ////console.log(x + "" + y)
                     x += -this.game.origDragPoint.x + this.game.input.activePointer.position.x;
                     y += -this.game.origDragPoint.y + this.game.input.activePointer.position.y;
                     camera.setPosition(x,y);
                   }
                   // set new drag origin to current position
                   this.game.origDragPoint = this.game.input.activePointer.position.clone();
-                }
+            }
+             
+        })
+        */
+        if (this.game.input.activePointer.isDown) { 
+            if(!this.objectActive){
+        
+            ////console.log(gameObject)
+            ////console.log("pointer down:" + (this.game.input.activePointer.position.y - camera.y))
+              //if(((this.game.input.activePointer.position.y - camera.y) < 200) || ((this.game.input.activePointer.position.y - camera.y) >800) ){
+                  if (this.game.origDragPoint) {    
+                    // move the camera by the amount the mouse has moved since last update
+                    var x = camera.x;
+                    var y = camera.y;
+                    ////console.log(x + "" + y)
+                    x += -this.game.origDragPoint.x + this.game.input.activePointer.position.x;
+                    y += -this.game.origDragPoint.y + this.game.input.activePointer.position.y;
+                    camera.setPosition(x,y);
+                  }
+                  // set new drag origin to current position
+                  this.game.origDragPoint = this.game.input.activePointer.position.clone();
+
+            }
         }
         else {
               this.game.origDragPoint = null;
         }
+        
+        
     
     }
 
     create() {
-        console.log("check");
+        //console.log("check");
         this.isPlayerA = false;
         this.opponentCards = [];
-        this.zone = new Zone(this, this.canvas.width/2, this.canvas.height/3, this.canvas.width/2, this.canvas.height/3, { cards: 0 });
+        this.zone = new Zone(this, this.canvas.width/2.5, this.canvas.height/3, this.canvas.width/2, this.canvas.height/3, { cards: 0 });
         this.dropZone = this.zone.zone;
         this.dealer = new Dealer();
         this.cardDealt = false;
@@ -105,6 +135,7 @@ export default class Game extends Phaser.Scene {
             self.dealText.disableInteractive();
         })
 
+        this.dropZone.data.values.cards = 0;
 
         this.backupHand = [];
         this.gameObjectsOnTable = [];
@@ -131,19 +162,23 @@ export default class Game extends Phaser.Scene {
         this.ConfigureHideRandomFromDeck(self);
         this.ConfigureDrawFromDeck(self);
         this.configureAutoSubmitText(self);
-
+        self.objectActive = false;
         this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
+            self.objectActive = true;
+            // console.log(gameObject);
             gameObject.x = dragX;
             gameObject.y = dragY;
         })
 
         this.input.on('dragstart', function (pointer, gameObject) {
+            self.objectActive = true;
             gameObject.setTint(0xff69b4);
             //self.children.bringToTop(gameObject);
         })
 
         this.input.on('dragend', function (pointer, gameObject, dropped) {
             gameObject.setTint();
+            self.objectActive = false;
             if (!dropped) {
                 gameObject.x = gameObject.input.dragStartX;
                 gameObject.y = gameObject.input.dragStartY;
@@ -152,14 +187,16 @@ export default class Game extends Phaser.Scene {
         })
 
         this.input.on('drop', function (pointer, gameObject, dropZone) {
-            dropZone.data.values.cards++;
-            gameObject.x = (dropZone.x - 350) + (dropZone.data.values.cards * 25);
+            //console.log(self.dropZone.data.values.cards);
+            self.dropZone.data.values.cards++;
+            gameObject.x = (dropZone.x - 350) + (self.dropZone.data.values.cards * 35);
             gameObject.y = dropZone.y;
             gameObject.dragStartX = gameObject.input.dragStartX;
             gameObject.dragStartY = gameObject.input.dragStartY;
+            gameObject.depth = self.dropZone.data.values.cards;
             gameObject.disableInteractive();
             //this.player.lastDealt = [];
-            console.log("drop for player:" + self.player);
+            //console.log("drop for player:" + self.player);
             self.player.currentDealt.push(gameObject);
             //remove this card from playerHand
             if(self.backupHand.length == 0) {
@@ -167,13 +204,13 @@ export default class Game extends Phaser.Scene {
             }
             for( var i = 0; i < self.player.hand.length; i++){ 
                 if ( self.player.hand[i].imageUrl == gameObject.card.imageUrl) { 
-                    console.log("removing:" + self.player.hand[i].imageUrl);
+                    //console.log("removing:" + self.player.hand[i].imageUrl);
                     self.player.hand.splice(i, 1); 
                 }
             }
-            console.log("hand: " + self.player.hand)
-            console.log("currentDealt: " + self.player.currentDealt);
-            console.log("lastDealt: " + self.player.lastDealt);
+            //console.log("hand: " + self.player.hand)
+            //console.log("currentDealt: " + self.player.currentDealt);
+            //console.log("lastDealt: " + self.player.lastDealt);
             if(self.autoSubmit){
                 self.submit();
             }
@@ -183,17 +220,17 @@ export default class Game extends Phaser.Scene {
 
 
         this.socket.on('gameState', (data) =>{           // Response to gamestate update
-          console.log("gamestate : " + data);
+          //console.log("gamestate : " + data);
           self.gameTableHidden = data.gameTableHidden;
           self.players = data.players;
-          console.log("player data from server: " + data.player);
+          //console.log("player data from server: " + data.player);
           self.player = JSON.parse(data.player);
-          console.log("after update, player:" + self.player);
+          //console.log("after update, player:" + self.player);
           self.cardsOnTable = JSON.parse(data.cardsOnTable);
           self.cardDealt = data.cardDealt;
           self.deckSize = data.deckSize;
           self.lastPlayer = data.lastPlayer;
-          console.log("random card" +data.randomCard);
+          //console.log("random card" +data.randomCard);
           if(data.randomCard){
             self.randomCard = JSON.parse(data.randomCard);
           } else {
@@ -217,19 +254,37 @@ export default class Game extends Phaser.Scene {
         let self = this;
         this.gameObjectsOnHandandTable.forEach(gameObject => gameObject.destroy());
         this.gameObjectsOnHandandTable = [];
-        console.log("updategame: cardsonTableandHand: " + this.gameObjectsOnHandandTable.length )
+        //console.log("updategame: cardsonTableandHand: " + this.gameObjectsOnHandandTable.length )
         this.gameObjectsOnTable= [];
         this.showPlayers();
         var i = 0
         this.player.hand.forEach(card => {
-                console.log(card.imageUrl);
+                //console.log(card.imageUrl);
                 var cardCopy = new Card(card.imageUrl, self.standardCardBack);
                 self.gameObjectsOnHandandTable.push(cardCopy.render(self, 275 + (i * 30), 650));
                 i++;
             });
         let dropZone = self.dropZone;
         dropZone.data.values.cards = 0;
-        this.cardsOnTable.forEach(card => {      
+        var stacked = this.cardsOnTable.length - 10;
+        //console.log(stacked)
+        for(let i=0; i<stacked; i++){
+            //console.log("stacked")
+            var card = this.cardsOnTable[i];
+            dropZone.data.values.cards++;
+            var cardCopy = new Card(card.imageUrl, self.standardCardBack);
+            let x = (dropZone.x - 350) + (dropZone.data.values.cards * 5);
+            let y = dropZone.y;
+            let gObject = cardCopy.render(self, x, y, card.imageUrl);
+            self.gameObjectsOnHandandTable.push(gObject);
+            self.gameObjectsOnTable.push(gObject);
+            if(self.gameTableHidden) cardCopy.hide();
+        }
+        if(stacked<0) stacked=0;
+        dropZone.data.values.cards = 0;
+        for(stacked; stacked < this.cardsOnTable.length ; stacked++){
+            //console.log("unstacked")
+            var card = this.cardsOnTable[stacked];
             dropZone.data.values.cards++;
             var cardCopy = new Card(card.imageUrl, self.standardCardBack);
             let x = (dropZone.x - 350) + (dropZone.data.values.cards * 30);
@@ -238,8 +293,8 @@ export default class Game extends Phaser.Scene {
             self.gameObjectsOnHandandTable.push(gObject);
             self.gameObjectsOnTable.push(gObject);
             if(self.gameTableHidden) cardCopy.hide();
-
-        });
+        }
+        ////console.log(self.dropZone.data.values.cards);
         this.deck.forEach(card => card.gameObject.destroy());
         this.deck = [];
         if(this.randomCard){
@@ -279,9 +334,9 @@ export default class Game extends Phaser.Scene {
     
 
     configureAddStandardDeck(self){
-        this.AddStandardDeck = this.add.text(30, 50, ['AddStandardDeck']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.AddStandardDeck = this.add.text(30, 25, ['AddStandardDeck']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.AddStandardDeck.on('pointerdown', function () {
-            console.log("AddStandardDeck");
+            //console.log("AddStandardDeck");
             self.socket.emit('AddStandardDeck');
         });
         this.AddStandardDeck.on('pointerover', function () {
@@ -294,9 +349,9 @@ export default class Game extends Phaser.Scene {
     }
 
     configureAddUnoDeck(self){
-        this.AddUnoDeck = this.add.text(230, 50, ['AddUnoDeck']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.AddUnoDeck = this.add.text(230, 25, ['AddUnoDeck']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.AddUnoDeck.on('pointerdown', function () {
-            console.log("AddUnoDeck");
+            //console.log("AddUnoDeck");
             self.socket.emit('AddUnoDeck');
         });
         this.AddUnoDeck.on('pointerover', function () {
@@ -309,10 +364,10 @@ export default class Game extends Phaser.Scene {
     }
 
     configureSuffleText(self){
-        this.suffleText = this.add.text(430, 50, ['SHUFFLE CARDS']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.suffleText = this.add.text(430, 25, ['SHUFFLE CARDS']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
 
         this.suffleText.on('pointerdown', function () {
-            console.log("suffletext")
+            //console.log("suffletext")
             self.socket.emit("suffle");
         })
 
@@ -328,10 +383,10 @@ export default class Game extends Phaser.Scene {
 
     configureDealText(self){
 
-        this.dealText = this.add.text(630, 50, ['DEAL CARDS']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.dealText = this.add.text(630, 25, ['DEAL CARDS']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
 
         this.dealText.on('pointerdown', function () {
-            console.log("clicked")
+            //console.log("clicked")
             self.socket.emit("dealCards");
         });
 
@@ -346,9 +401,9 @@ export default class Game extends Phaser.Scene {
     }
 
     configureNewGameText(self){
-        this.NewGameText = this.add.text(830, 50, ['NewGame']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.NewGameText = this.add.text(830, 25, ['NewGame']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.NewGameText.on('pointerdown', function () {
-            console.log("New Game");
+            //console.log("New Game");
             self.socket.emit('newGame');
         });
         this.NewGameText.on('pointerover', function () {
@@ -361,9 +416,9 @@ export default class Game extends Phaser.Scene {
     }
 
     configureSubmitText(self) {
-        this.submitText = this.add.text(30, 75, ['Submit Hand']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.submitText = this.add.text(30, 50, ['Submit Hand']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.submitText.on('pointerdown', function () {
-            console.log("submitted");
+            //console.log("submitted");
             self.submit(this)
         });
         this.submitText.on('pointerover', function () {
@@ -386,18 +441,18 @@ export default class Game extends Phaser.Scene {
                 self.player.currentDealt.push(gameObject.card);
             })
             
-            console.log("hand: " + self.player.hand)
-            console.log("currentDealt: " + self.player.currentDealt);
-            console.log("lastDealt: " + self.player.lastDealt);
+            //console.log("hand: " + self.player.hand)
+            //console.log("currentDealt: " + self.player.currentDealt);
+            //console.log("lastDealt: " + self.player.lastDealt);
             self.socket.emit('cardPlayed', JSON.stringify(self.player));
     }
 
     configureRevert(self) {
-        this.revertText = this.add.text(230, 75, ['Revert last Move']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.revertText = this.add.text(230, 50, ['Revert last Move']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.revertText.on('pointerdown', function () {
-            console.log("reverted");
+            //console.log("reverted");
             //add back to hand
-            if(self.self.player.currentDealt.length>0){
+            if(self.player.currentDealt.length>0){
             self.player.hand = self.backupHand;
             self.player.currentDealt.forEach(gameObject => {
                 self.dropZone.data.values.cards--;
@@ -406,9 +461,9 @@ export default class Game extends Phaser.Scene {
                 gameObject.setInteractive();
             })
             self.player.currentDealt = [];
-            console.log("hand: " + self.player.hand)
-            console.log("currentDealt: " + self.player.currentDealt);
-            console.log("lastDealt: " + self.player.lastDealt);
+            //console.log("hand: " + self.player.hand)
+            //console.log("currentDealt: " + self.player.currentDealt);
+            //console.log("lastDealt: " + self.player.lastDealt);
            }
         });
         this.revertText.on('pointerover', function () {
@@ -421,9 +476,9 @@ export default class Game extends Phaser.Scene {
     }
 
     configureSortText(self){
-        this.SortText = this.add.text(430, 75, ['Sort']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.SortText = this.add.text(430, 50, ['Sort']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.SortText.on('pointerdown', function () {
-            console.log("sorting");
+            //console.log("sorting");
             self.socket.emit('sortHand');
         });
         this.SortText.on('pointerover', function () {
@@ -436,9 +491,9 @@ export default class Game extends Phaser.Scene {
     }
 
     configureMoveToDeck(self){
-        this.MoveToDeck = this.add.text(630, 75, ['MoveToDeck']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.MoveToDeck = this.add.text(630, 50, ['MoveToDeck']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.MoveToDeck.on('pointerdown', function () {
-            console.log("MoveToDeck");
+            //console.log("MoveToDeck");
             self.socket.emit('MoveToDeck');
         });
         this.MoveToDeck.on('pointerover', function () {
@@ -451,9 +506,9 @@ export default class Game extends Phaser.Scene {
     }
 
     configureShowLastText(self){
-        this.ShowLastText = this.add.text(830, 75, ['ShowLast']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.ShowLastText = this.add.text(830, 50, ['ShowLast']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.ShowLastText.on('pointerdown', function () {
-            console.log("show last");
+            //console.log("show last");
             self.socket.emit('showLast');
         });
         this.ShowLastText.on('pointerover', function () {
@@ -466,9 +521,9 @@ export default class Game extends Phaser.Scene {
     }
 
     configurePickAllFromTableText(self) {
-        this.PickAllFromTable = this.add.text(30, 100, ['PickAllFromTable']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.PickAllFromTable = this.add.text(30, 75, ['PickAllFromTable']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.PickAllFromTable.on('pointerdown', function () {
-            console.log("picking all");
+            //console.log("picking all");
             self.socket.emit('pick', -1);
         });
         this.PickAllFromTable.on('pointerover', function () {
@@ -482,9 +537,9 @@ export default class Game extends Phaser.Scene {
 
     
     configurePickOneFromTableText(self) {
-        this.PickOneFromTable = this.add.text(230, 100, ['PickOneFromTable']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.PickOneFromTable = this.add.text(230, 75, ['PickOneFromTable']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.PickOneFromTable.on('pointerdown', function () {
-            console.log("picking all");
+            //console.log("picking all");
             self.socket.emit('pick', 1);
         });
         this.PickOneFromTable.on('pointerover', function () {
@@ -497,9 +552,9 @@ export default class Game extends Phaser.Scene {
     }
 
     configurePickTwoFromTableText(self) {
-        this.PickTwoFromTable = this.add.text(430, 100, ['PickTwoFromTable']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.PickTwoFromTable = this.add.text(430, 75, ['PickTwoFromTable']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.PickTwoFromTable.on('pointerdown', function () {
-            console.log("picking all");
+            //console.log("picking all");
             self.socket.emit('pick', 2);
         });
         this.PickTwoFromTable.on('pointerover', function () {
@@ -512,9 +567,9 @@ export default class Game extends Phaser.Scene {
     }
 
     configurePickFourFromTableText(self) {
-        this.PickFourFromTable = this.add.text(630, 100, ['PickFourFromTable']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.PickFourFromTable = this.add.text(630, 75, ['PickFourFromTable']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.PickFourFromTable.on('pointerdown', function () {
-            console.log("picking all");
+            //console.log("picking all");
             self.socket.emit('pick', 4);
         });
         this.PickFourFromTable.on('pointerover', function () {
@@ -527,9 +582,9 @@ export default class Game extends Phaser.Scene {
     }
 
     configureAutoSubmitText(self) {
-        this.AutoSubmitText = this.add.text(830, 100, ['AutoSubmit']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.AutoSubmitText = this.add.text(830, 75, ['AutoSubmit']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.AutoSubmitText.on('pointerdown', function () {
-            console.log("autoSubmit all");
+            //console.log("autoSubmit all");
             self.socket.emit('autoSubmit');
         });
         this.AutoSubmitText.on('pointerover', function () {
@@ -544,9 +599,9 @@ export default class Game extends Phaser.Scene {
     
     
     configureHideTableText(self){
-        this.HideTableText = this.add.text(30, 125, ['HideTable']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.HideTableText = this.add.text(30, 100, ['HideTable']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.HideTableText.on('pointerdown', function () {
-            console.log("picking all");
+            //console.log("picking all");
             self.socket.emit('hideTable');
         });
         this.HideTableText.on('pointerover', function () {
@@ -559,9 +614,9 @@ export default class Game extends Phaser.Scene {
     }
 
     configureShowTableText(self){
-        this.ShowTableText = this.add.text(230, 125, ['ShowTable']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.ShowTableText = this.add.text(230, 100, ['ShowTable']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.ShowTableText.on('pointerdown', function () {
-            console.log("picking all");
+            //console.log("picking all");
             self.socket.emit('showTable');
         });
         this.ShowTableText.on('pointerover', function () {
@@ -576,9 +631,9 @@ export default class Game extends Phaser.Scene {
     
 
     ConfigureShowRandomFromDeck(self){
-        this.RandomFromDeck = this.add.text(430, 125, ['ShowRandomFromDeck']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.RandomFromDeck = this.add.text(430, 100, ['ShowRandomFromDeck']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.RandomFromDeck.on('pointerdown', function () {
-            console.log("RandomFromDeck");
+            //console.log("RandomFromDeck");
             self.socket.emit('RandomFromDeck');
         });
         this.RandomFromDeck.on('pointerover', function () {
@@ -591,9 +646,9 @@ export default class Game extends Phaser.Scene {
     }
 
     ConfigureHideRandomFromDeck(self){
-        this.HideRandomFromDeck = this.add.text(630, 125, ['HideRandomFromDeck']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.HideRandomFromDeck = this.add.text(630, 100, ['HideRandomFromDeck']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.HideRandomFromDeck.on('pointerdown', function () {
-            console.log("HideRandomFromDeck");
+            //console.log("HideRandomFromDeck");
             self.socket.emit('HideRandomFromDeck');
         });
         this.HideRandomFromDeck.on('pointerover', function () {
@@ -606,9 +661,9 @@ export default class Game extends Phaser.Scene {
     }
 
     ConfigureDrawFromDeck(self){
-        this.DrawFromDeck = this.add.text(830, 125, ['DrawFromDeck']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        this.DrawFromDeck = this.add.text(830, 100, ['DrawFromDeck']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.DrawFromDeck.on('pointerdown', function () {
-            console.log("DrawFromDeck");
+            //console.log("DrawFromDeck");
             self.socket.emit('DrawFromDeck');
         });
         this.DrawFromDeck.on('pointerover', function () {
