@@ -311,9 +311,9 @@ export default class Game extends Phaser.Scene {
     showPlayers(){
         var players = " ";
         let self = this;
-        for(let i=0; i<players.length; i++){
-            var player = players[i];
-            var num = null;
+        for(let i=0; i<this.players.length; i++){
+            var player = this.players[i];
+            var num = 0;
             if(self.playerCardsNum[i])
                 num = self.playerCardsNum[i];
             if(self.lastPlayer && self.lastPlayer == player) {
@@ -325,13 +325,7 @@ export default class Game extends Phaser.Scene {
                 players = players + "(" + num + ")";
             }
         }
-        this.players.forEach(player => {
-            if(self.lastPlayer && self.lastPlayer == player) {
-                players = players + " <<Player Name: "  + player +">> ";
-            } else {
-                players = players + " Player Name: "  + player;
-            }
-        });
+
         if(this.gameTableHidden) {
             players = players + " tablehidden"
         }
