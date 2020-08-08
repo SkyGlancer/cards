@@ -483,9 +483,11 @@ function socketDisconnect(socket){
 // Update the gamestate for every client in the room that is passed to this function
 function gameUpdate(roomName, opts){
   let players = [];
+  let playerCardsNum = [];
   ROOM_LIST[roomName].playersArr.forEach(playerId => {
     console.log("playerId : " +playerId)
     players.push(PLAYER_LIST[playerId].nickname)
+    playerCardsNum.push(PLAYER_LIST[playerId].hand.length);
   });
   // Create data package to send to the client
   var randomCard = ROOM_LIST[roomName].game.drawOneCard();;
@@ -496,6 +498,7 @@ function gameUpdate(roomName, opts){
   let gameState = {
     room: roomName,
     players: players,
+    playerCardsNum: playerCardsNum,
     cardsOnTable: JSON.stringify(ROOM_LIST[roomName].game.cardsOnTable),
     cardDealt: ROOM_LIST[roomName].game.cardDealt,
     gameTableHidden: ROOM_LIST[roomName].game.gameTableHidden,

@@ -91,7 +91,7 @@ export default class Game extends Phaser.Scene {
     }
 
     create() {
-        //console.log("check");
+        console.log("check");
         this.isPlayerA = false;
         this.opponentCards = [];
         this.zone = new Zone(this, this.canvas.width/2.5, this.canvas.height/3, this.canvas.width/2, this.canvas.height/3, { cards: 0 });
@@ -112,6 +112,8 @@ export default class Game extends Phaser.Scene {
         let socket = this.socket;
 
         this.players = this.game.players;
+        this.playerCardsNum = [];
+        this.players.forEach(player =>self.playerCardsNum.push(0));
         let players = this.players;
         this.showPlayers();
 
@@ -239,6 +241,7 @@ export default class Game extends Phaser.Scene {
 
           self.showRandomCards = data.showRandomCards;
           self.autoSubmit = data.autoSubmit;
+          self.playerCardsNum = data.playerCardsNum;
           self.updateGame();
         });
 
@@ -308,6 +311,20 @@ export default class Game extends Phaser.Scene {
     showPlayers(){
         var players = " ";
         let self = this;
+        for(let i=0; i<players.length; i++){
+            var player = players[i];
+            var num = null;
+            if(self.playerCardsNum[i])
+                num = self.playerCardsNum[i];
+            if(self.lastPlayer && self.lastPlayer == player) {
+                players = players + " <<Player Name: "  + player +">>";
+            } else {
+                players = players + " Player Name: "  + player;
+            }
+            if(num) {
+                players = players + "(" + num + ")";
+            }
+        }
         this.players.forEach(player => {
             if(self.lastPlayer && self.lastPlayer == player) {
                 players = players + " <<Player Name: "  + player +">> ";
