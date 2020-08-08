@@ -32,6 +32,10 @@ export default class Game extends Phaser.Scene {
         this.standardCardBack = 'src/assets/standard_card_back_blue.png';
         this.load.image('src/assets/standard_card_back_blue.png', 'src/assets/standard_card_back_blue.png');
         this.canvas = this.sys.game.canvas;
+        var url;
+  
+        url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexpinchplugin.min.js';
+        this.load.plugin('rexpinchplugin', url, true);
 
     }
 
@@ -91,6 +95,15 @@ export default class Game extends Phaser.Scene {
     }
 
     create() {
+        var dragScale = this.plugins.get('rexpinchplugin').add(this);
+
+        var camera = this.cameras.main;
+        dragScale
+            .on('pinch', function (dragScale) {
+                var scaleFactor = dragScale.scaleFactor;
+                camera.zoom *= scaleFactor;
+            }, this);
+        
         console.log("check");
         this.isPlayerA = false;
         this.opponentCards = [];
