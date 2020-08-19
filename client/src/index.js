@@ -4,7 +4,8 @@ import io from 'socket.io-client';
 import {calculateCoords} from './helpers/cardsHelper';
 
 //const server = 'http://10.0.2.2:3000';
-const server = 'http://localhost:3000';
+//const server = 'http://localhost:3000';
+const server = 'http://35.244.33.191:3000';
 //let socket = io('http://35.244.33.191:3000');
 let socket = io(server);
 
