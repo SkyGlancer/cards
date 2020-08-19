@@ -1,9 +1,26 @@
 import Phaser from "phaser";
 import Game from "./scenes/game"
 import io from 'socket.io-client';
+import {calculateCoords} from './helpers/cardsHelper';
 
-let socket = io('http://35.244.33.191:3000');
-//let socket = io('http://localhost:3000');
+//const server = 'http://10.0.2.2:3000';
+const server = 'http://localhost:3000';
+//let socket = io('http://35.244.33.191:3000');
+let socket = io(server);
+
+//preload images
+var myimages =  {};
+function preloadimages(imageUrls){
+  imageUrls.forEach(url => {
+    myimages[url] = new Image();
+    myimages[url].src = server + '/' + url;
+  })
+}
+var imageUrls = [];
+imageUrls.push('table.jpg');
+imageUrls.push('background.jpg')
+
+preloadimages(imageUrls);
 
 const config = {
     type: Phaser.AUTO,
@@ -16,14 +33,12 @@ const config = {
 };
 
 
-
-
-
 // Sign In Page Elements
 ////////////////////////////////////////////////////////////////////////////
 // Divs
 let joinDiv = document.getElementById('join-game')
 let joinErrorMessage = document.getElementById('error-message')
+let gameDiv = document.getElementById('game')
 // Input Fields
 let joinNickname = document.getElementById('join-nickname')
 let joinRoom = document.getElementById('join-room')
@@ -31,11 +46,36 @@ let joinPassword = document.getElementById('join-password')
 // Buttons
 let joinEnter = document.getElementById('join-enter')
 let joinCreate = document.getElementById('join-create')
+let AddStandardDeck = document.getElementById('AddStandardDeck');
+let DealCards = document.getElementById('DealCards');
 
+//zone
+let zone = document.getElementById('drop-zone');
+let handZone = document.getElementById('hand-zone');
+console.log(myimages['table.jpg'].src)
+//zone.style.backgroundImage = "url(" + myimages['table.jpg'].src + ")";
+document.body.style.backgroundImage = "url(" + myimages['background.jpg'].src + ")";
 
 // Game Page Elements
 ////////////////////////////////////////////////////////////////////////////
+let backupHand = [];
+let gameObjectsOnTable = [];
+let gameTableHidden = false;
+let gameObjectsOnHandandTable = new Set();
+let players = null
+let playerCardsNum = [];
+let player = null;
+let autoSubmit = false;
+let showRandomCards = false;
+let deckSize = 0;
+let cardsOnTable = null;
+let cardDealt = null;
+let  lastPlayer = null;
+let random = null;
+let randomCard = null;
+//let cardHelper = new CardsHelper();
 //
+newGame();
 export class CardsGame extends Phaser.Game {
     constructor(config, socket, players) {
         super(config)
@@ -67,10 +107,13 @@ joinCreate.onclick = () => {
 
 socket.on('joinResponse', (data) =>{        // Response to joining room
   if(data.success){
-    joinDiv.style.display = 'none'
+     joinDiv.style.display = 'none'
     joinErrorMessage.innerText = ''
+    gameDiv.style.display = 'block'
+    players = data.players;
+    players.forEach(player => playerCardsNum.push(0));
 
-    const game = new CardsGame(config,socket, data.players);
+    //const game = new CardsGame(config,socket, data.players);
   } else joinErrorMessage.innerText = data.msg
 })
 
@@ -78,13 +121,429 @@ socket.on('createResponse', (data) =>{      // Response to creating room
   if(data.success){
     joinDiv.style.display = 'none'
     joinErrorMessage.innerText = ''
-
-   const game = new CardsGame(config, socket, data.players);
+    gameDiv.style.display = 'block'
+    players = data.players;
+    players.forEach(player => playerCardsNum.push(0));
+   //const game = new CardsGame(config, socket, data.players);
   } else joinErrorMessage.innerText = data.msg
 })
 
+$( "#slider" ).slider({
+   orientation:"horizontal",
+   value:13,
+   slide: function( event, ui ) {
+      $("#hand-zone").each(function () {fan($(this)); });
+   }  
+});
+
+$( "#slider" ).hide();
+//game buttons
+AddStandardDeck.onclick = () => {
+  $('#AddUnoDeck').hide();
+  console.log("AddStandardDeck")
+  socket.emit('AddStandardDeck');
+}
+DealCards.onclick = () => {
+  console.log("DealCards")
+  socket.emit("dealCards");
+}
+AddUnoDeck.onclick = () => {
+  $('#AddStandardDeck').hide();
+  console.log("AddUnoDeck")
+  socket.emit('AddUnoDeck');
+}
+ShuffleCards.onclick = () => {
+  console.log("suffle")
+  socket.emit('suffle');
+}
+
+SubmitHand.onclick = () => {
+  console.log("submit")
+  submit();
+}
+Sort.onclick = () => {
+   socket.emit('sortHand');
+}
+MoveToDeck.onclick = () => {
+   socket.emit('MoveToDeck');
+}
+ShowLast.onclick = () => {
+   socket.emit('showLast');
+}
+AutoSubmit.onclick = () => {
+   socket.emit('autoSubmit');
+}
+HideTable.onclick = () => {
+   socket.emit('hideTable');
+}
+ShowTable.onclick = () => {
+   socket.emit('showTable');
+}
+ShowRandom.onclick = () => {
+   socket.emit('RandomFromDeck');
+}
+HideRandom.onclick = () => {
+   socket.emit('HideRandomFromDeck');
+}
+DrawFromDeck.onclick = () => {
+   socket.emit('DrawFromDeck');
+}
+Revert.onclick = () => {
+   socket.emit('revert');
+}
+NewGame.onclick = () => {
+  socket.emit('newGame');
+   newGame();
+}
+
+function newGame() {
+  
+  $('#AddStandardDeck').show();
+  $('#AddUnoDeck').show();
+  hideDeckControls();
+}
+
+function hideDeckControls(){
+  $('#DealCards').hide()
+  $('#ShuffleCards').hide();
+  $('#ShowRandom').hide();
+  $('#HideRandom').hide();
+  $('#DrawFromDeck').hide();
+}
+
+function showDeckControls(){
+  $('#DealCards').show()
+  $('#ShuffleCards').show();
+  $('#ShowRandom').show();
+  $('#HideRandom').show();
+  $('#DrawFromDeck').show();
+}
+socket.on('showCards', (num) =>{    
+    showCards(num);
+});
+
+function showCards(num) {
+    var gameObjectsOnTable = $('#drop-zone-unstacked').children();
+    console.log($('#drop-zone-unstacked').children())
+    for(let i = 0; i<num; i++){
+        console.log("gameObjectsOnTable");
+        console.log(gameObjectsOnTable);
+        gameObjectsOnTable[gameObjectsOnTable.length - i -1].src = server + "/" + gameObjectsOnTable[gameObjectsOnTable.length - i -1].card.imageUrl;
+    }
+}
+
+//server responses
+socket.on('gameState', (data) =>{           // Response to gamestate update
+  //console.log("gamestate : " + data);
+  gameTableHidden = data.gameTableHidden;
+  players = data.players;
+  //console.log("player data from server: " + data.player);
+  player = JSON.parse(data.player);
+  //console.log("after update, player:" + player);
+  cardsOnTable = JSON.parse(data.cardsOnTable);
+  cardDealt = data.cardDealt;
+  deckSize = data.deckSize;
+  lastPlayer = data.lastPlayer;
+  //console.log("random card" +data.randomCard);
+  if(data.randomCard){
+    randomCard = JSON.parse(data.randomCard);
+  } else {
+    randomCard = null;
+  }
+
+  showRandomCards = data.showRandomCards;
+  autoSubmit = data.autoSubmit;
+  playerCardsNum = data.playerCardsNum;
+  updateGame();
+});
 
 
 
-//game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;    game.scale.setScreenSize(true);
+function updateGame() {
+    $('#hand-zone').empty();
+    $('#drop-zone-current').empty();
+    $("#drop-zone-stacked").empty();
+    $("#drop-zone-unstacked").empty();
+    $('#random-card').empty();
+    player.hand.forEach(card => {
+        //console.log(card.imageUrl);
+        var elem = document.createElement("img");
+        console.log(card.imageUrl);
+        elem.setAttribute("class", "card");
+        elem.src = server + "/" + card.imageUrl;
+        $('#hand-zone').append(elem);
+        elem.card = card;
+        
+    });
+    $("#hand-zone").each(function () {fan($(this)); });
+    setupHand();
+    for(var stacked =0 ; stacked < cardsOnTable.length ; stacked++){
+        //console.log("unstacked")
+        var card = cardsOnTable[stacked];
+        var elem = document.createElement("img");
+        console.log(card.imageUrl);
+        elem.setAttribute("class", "card");
+        var image = (!gameTableHidden) ? card.imageUrl : card.backImageUrl;
+        elem.src = server + "/" + image;
+        elem.card = card;
+        $('#drop-zone-unstacked').append(elem);
+    }
+    $("#drop-zone-unstacked").each(function () { hand($(this)); });
+    if(randomCard){
+        var elem = document.createElement("img");
+        console.log(randomCard.imageUrl);
+        elem.setAttribute("class", "card");
+        var image = showRandomCards ? randomCard.imageUrl : randomCard.backImageUrl;
+        elem.src =  server + "/" + image;
+        elem.card = randomCard;
+        $('#random-card').append(elem);
+        hand($('#random-card'));
+        showDeckControls();
+    } else {
+      hideDeckControls();
+    }
+    showPlayers();
+    //$("#random-card").each(function () { hand($(this)); });
+    
+}
 
+function showPlayers(){
+
+  var playersText = " ";
+  for(let i=0; i<players.length; i++){
+      var player = players[i];
+      var num = 0;
+      if(playerCardsNum[i])
+          num = playerCardsNum[i];
+      if(lastPlayer && lastPlayer == player) {
+          playersText = playersText + " <<Player Name: "  + player +">>";
+      } else {
+          playersText = playersText + " Player Name: "  + player;
+      }
+      if(num) {
+          playersText = playersText + "(" + num + ")";
+      }
+  }
+
+
+  if(gameTableHidden) {
+      playersText = playersText + " tablehidden"
+  }
+  if(autoSubmit){
+      playersText = playersText + " autoSubmit : on"
+  }
+  
+  $('#players').text(playersText);  
+}
+
+
+function setupHand(){
+    
+    var cards = $("#hand-zone").children("img.card");
+    if(cards.length > 0){
+      $( "#slider" ).show();
+    } else {
+      $( "#slider" ).hide();
+    }
+    console.log(cards);
+    cards.each(function() {
+        $(this).dblclick(function() {
+              drop(this);
+            });
+        $(this).on('doubletap',function(event){
+          drop(this);
+        });
+    });
+}
+
+function drop(card){
+    $(card).draggable('disable');
+    $(card).attr('draggable',"false");
+    card.left = card.style.left;
+    card.top = card.style.top;
+    $(card).detach().appendTo('#drop-zone-current');
+    hand($('#drop-zone-current'));
+    player.currentDealt.push(card.card);
+    for( var i = 0; i < player.hand.length; i++){ 
+        if ( player.hand[i].imageUrl == card.card.imageUrl) { 
+            //console.log("removing:" + self.player.hand[i].imageUrl);
+            player.hand.splice(i, 1); 
+            card.index = i;
+        }
+    }
+    if(autoSubmit){
+        submit();
+    }
+}
+
+Discard.onclick = () => {
+   $('#drop-zone-current').children().each( function() { 
+    player.hand.splice(this.index, 0, this.card);
+   });
+   player.currentDealt = [];
+   updateGame();
+
+}
+ 
+function submit() {
+    socket.emit('cardPlayed', JSON.stringify(player));
+}
+ 
+var Options = {
+            //spacing: 0.13,  // How much to show between cards, expressed as percentage of textureWidth
+            //radius: 821,
+            width: 200,    // This is the radius of the circle under the fan of cards and thus controls the overall curvature of the fan. Small values means higher curvature
+            flow: 'horizontal', // The layout direction (horizontal or vertical)
+            fanDirection: "N",
+            flow: 'horizontal',
+        }; 
+        
+function fan(hand) {
+    var fanOptions = {};
+    $.extend(fanOptions, Options, readOptions(hand, 'fan'));
+
+    var cards;
+    hand.data("fan", 'radius: ' + fanOptions.radius + '; spacing: ' + fanOptions.spacing);
+    console.log(fanOptions);
+    cards = hand.find("img.card");
+    if (cards.length === 0) {
+        return;
+    }
+    fanCards(cards, this, fanOptions);
+}
+
+function hand($hand, cfg) {
+            var fanOptions = {}, cards,
+                width,
+                height;
+            $.extend(fanOptions, Options, readOptions($hand, 'hand'));
+            console.log(Options)
+            cards = $hand.find('img.card');
+            if (cards.length === 0) {
+                return;
+            }
+            width = fanOptions.width; // hack: for a hidden hand
+            height = Math.floor(width * 1.4);
+            if (width) {
+                cards.width(fanOptions.width);
+                cards.height(height);
+            }
+            var stacked = cards.length - 10;
+            if (fanOptions.flow === 'horizontal' && fanOptions.spacing < 1.0) {
+                cards.slice(1).css('margin-left', -width * (1.0 - fanOptions.spacing));
+                if(stacked>0)
+                    cards.slice(1,stacked).css('margin-left', -width * (1.0 - fanOptions.spacing/4));
+                cards.css('margin-top', 0);
+            }
+        };
+
+function fanCards(cards, self, fanOptions) {
+        var n = cards.length;
+        if (n === 0) {
+            return;
+        }
+
+        var width =  fanOptions.width; // hack: for a hidden hand
+        fanOptions.spacing = $( "#slider" ).slider( "value" )/100 || fanOptions.spacing;
+        console.log('width');
+        console.log(width);
+        var radius = fanOptions.radius;
+        if(n>26) radius = 6*radius;
+        var height =  Math.floor(width * 1.4); // hack: for a hidden hand
+        var box = {};
+        var coords = calculateCoords(n, radius, width, height, fanOptions.fanDirection, fanOptions.spacing, box);
+        if(coords.length == 0) {
+            return;
+        }
+        var hand = $(cards[0]).parent();
+        hand.width(box.width);
+        hand.height(box.height);
+
+        var i = 0;
+        console.log(coords[coords.length -1].x);
+        var gap = config.width - coords[coords.length -1].x - width;
+        console.log(gap);
+        coords.forEach(function (coord) {
+            var card = cards[i++];
+            var x = coord.x + gap/2 ;
+            card.style.left = x + "px";
+            card.style.top = coord.y + "px";
+            card.style.width = width +"px";
+            card.style.height = height +"px";
+            $(card).draggable({
+                scroll: false,
+                containment: "#bg-container",
+                stop: function( event, ui ) {
+                    drop(this);
+                }
+            });
+
+
+           /* card.onmouseover = function () {
+                cardSetTop(card, coord.y - 10);
+            };
+            card.onmouseout = function () {
+                cardSetTop(card, coord.y);
+            };
+            */
+            var rotationAngle = Math.round(coord.angle);
+            var prefixes = ["Webkit", "Moz", "O", "ms"];
+            prefixes.forEach(function (prefix) {
+                card.style[prefix + "Transform"] = "rotate(" + rotationAngle + "deg)" + " translateZ(0)";
+            });
+        });
+
+    }
+
+function cardSetTop(card, top) {
+            card.style.top = top + "px";
+};
+
+function readOptions($elem, name) {
+    var v, i, len, s, options, o = {};
+
+    options = $elem.data(name);
+    console.log("nitish")
+    console.log(options)
+    options = (options || '').replace(/\s/g, '').split(';');
+    for (i = 0, len = options.length; i < len; i++) {
+        s = options[i].split(':');
+        v = s[1];
+        if (v && v.indexOf(',') >= 0) {
+            o[s[0]] = v.split(',');
+        } else {
+            o[s[0]] = Number(v) || v;
+        }
+    }
+    return o;
+}
+
+(function($){
+
+  $.event.special.doubletap = {
+    bindType: 'touchend',
+    delegateType: 'touchend',
+
+    handle: function(event) {
+      var handleObj   = event.handleObj,
+          targetData  = jQuery.data(event.target),
+          now         = new Date().getTime(),
+          delta       = targetData.lastTouch ? now - targetData.lastTouch : 0,
+          delay       = delay == null ? 300 : delay;
+
+      if (delta < delay && delta > 30) {
+        targetData.lastTouch = null;
+        event.type = handleObj.origType;
+        ['clientX', 'clientY', 'pageX', 'pageY'].forEach(function(property) {
+          event[property] = event.originalEvent.changedTouches[0][property];
+        })
+
+        // let jQuery handle the triggering of "doubletap" event handlers
+        handleObj.handler.apply(this, arguments);
+      } else {
+        targetData.lastTouch = now;
+      }
+    }
+  };
+
+})(jQuery);

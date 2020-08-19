@@ -6,6 +6,9 @@ Blue: #11779F
 Red: #B32728
 White: #F8FDFF
 Grey: #D6D2C9
+
+width 1680
+heigth 858
 */
 
 
@@ -542,4 +545,134 @@ button {
 #space {
   position: relative;
   width: 250px;
+}
+
+#drop-zone {
+  position: absolute;
+  width: 750px;
+  height: 310px;
+  top: 200px;
+  left: 490px;
+  display: flex;
+  flex-direction: column;
+  border-collapse:separate;
+  border-spacing:20px 0px;
+  border-radius: 50px;
+  box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
+}
+#drop-zone-unstacked {
+  vertical-align: middle;
+  margin-left: 20px;
+}
+
+#drop-zone-current{
+  vertical-align: middle;
+  margin-left: 20px;
+  flex-grow: 1;
+}
+#drop-zone-card{
+  margin-top: 30px;
+  flex-grow: 1;
+  display: flex;
+  flex-flow: row;
+}
+#hand-zone {
+  position: absolute;
+  top:550px;
+  left:0px;
+  width: 200px;
+  height: 310px;
+}
+
+#hand-zone-control {
+  position: absolute;
+  top:830px;
+  left:760px;
+  width: 500px;
+}
+
+#hand-zone-control button{
+    margin: 1%;
+    border-radius: 3px;
+    border: 2px solid #686c6d;
+    box-sizing: border-box;
+    padding: 4px;
+    width: 15%;
+    font-size: 12px;
+    background: #686c6d;
+    color: #F8FDFF;
+}
+
+#hand-zone-control button:hover {
+ background: #11779F
+} 
+#deck{
+  position: absolute;
+  top: 25px;
+  left: 1450px;
+  width: 160px;
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#deck button{
+    position: relative;
+    margin: 1%;
+    border-radius: 3px;
+    border: 2px solid #686c6d;
+    box-sizing: border-box;
+    padding: 4px;
+    width: 60%;
+    font-size: 12px;
+    background: #686c6d;
+    color: #F8FDFF;
+}
+
+#deck button:hover {
+ background: #11779F
+}
+
+#drop-zone-bottom {
+  margin-left: 80px;
+}
+
+#drop-zone-bottom button{
+    margin: 1%;
+    border-radius: 3px;
+    border: 2px solid #686c6d;
+    box-sizing: border-box;
+    padding: 4px;
+    width: 15%;
+    font-size: 12px;
+    background: #686c6d;
+    color: #F8FDFF;
+}
+
+#drop-zone-bottom button:hover {
+ background: #11779F
+}
+
+#deck button:hover {
+ background: #11779F
+}
+
+#random-card{
+  position: absolute;
+  z-index: -1;
+}
+
+#players{
+  position: absolute;
+  top: 0px;
+  left:0px;
+}
+
+#slider{
+  position: absolute;
+  top: 525px;
+  left: 800px;
+  width: 100px;
 }

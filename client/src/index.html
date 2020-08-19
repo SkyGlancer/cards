@@ -11,6 +11,12 @@
   <link rel="stylesheet" type="text/css" href="src/css/style.css">
   <link rel="stylesheet" type="text/css" href="src/css/game.css">
   <link href="https://fonts.googleapis.com/css?family=Changa:300" rel="stylesheet"> 
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/cardsJS/dist/cards.min.css" />
+  <link href = "https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel = "stylesheet">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js"></script>
+  <!--script src="https://unpkg.com/cardsJS/dist/cards.min.js" type="text/javascript"--> 
 </head>
 
 <body>
@@ -25,7 +31,7 @@
     <button id='server-message-okay'>Okay</button>
   </div>
   <div id="overlay"> </div>
-  <div id="join-game">
+  <div id="join-game" style="display:block">
     <h1>Cards</h1>
     <form>
       <div class='join-input'>
@@ -44,6 +50,62 @@
     <p id='error-message'> </p>
     <button id='join-enter'>Enter Room</button>
     <button id='join-create'>Create Room</button>
+  </div>
+  <div id="game" style="display:none">
+    <div id='title'>
+        <h1>Cards</h1>
+    </div>
+    <div id="drop-zone">
+      <div id="drop-zone-card">
+        <div id="drop-zone-stacked" class="hand" data-hand="spacing:0.13; width:150"></div>
+        <div id="drop-zone-unstacked" class="hand" data-hand="spacing:0.13; width:150"></div>
+        <div id="drop-zone-current" class="hand" data-hand="spacing:0.13; width:150"></div>
+      </div>
+      <div id="drop-zone-bottom">
+        
+        <button id='MoveToDeck'>MoveToDeck</button>
+        <button id='ShowLast'>ShowLast</button>
+        <button id='HideTable'>HideTable</button>
+        <button id='ShowTable'>ShowTable</button>
+        <button id='Revert'>Revert</button>
+
+     </div>
+    </div>
+    <div id="deck"> 
+      <div id="random-card" class="hand" data-hand="spacing:0.13; width:150"></div>
+      <button id='AddStandardDeck'>AddStandard</button>
+      <button id='AddUnoDeck'>AddUno</button>
+      <button id='DealCards'>DealCards</button>
+      <button id='ShuffleCards'>ShuffleCards</button>
+      <button id='ShowRandom'>ShowRandom</button>
+      <button id='HideRandom'>HideRandom</button>
+      <button id='DrawFromDeck'> DrawFromDeck </button>
+
+    </div>
+
+    
+    
+
+    <button id='NewGame'>NewGame</button>
+    
+    
+    <button id='AutoSubmit'>AutoSubmit</button>
+    
+
+
+    <div id="players"></div>
+
+    
+    
+    <div id="hand-zone" class="hand fan active-hand" data-fan="spacing:0.13; radius:821"></div>
+    <div id="hand-zone-control"> 
+      <button id='SubmitHand'>Submit</button>  
+        <button id='Discard'>Discard</button>
+        <button id='Sort'>Sort</button>
+      </div>
+
+    <div id="slider"></div>
+
   </div>
 </body>
 <script language="javascript" type="text/javascript" src="index.js"></script>
