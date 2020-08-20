@@ -1,9 +1,9 @@
 import io from 'socket.io-client';
 import {calculateCoords} from './helpers/cardsHelper';
 
-const server = 'http://10.0.2.2:3000';
+//const server = 'http://10.0.2.2:3000';
 //const server = 'http://localhost:3000';
-//const server = 'http://35.244.33.191:3000';
+const server = 'http://35.244.33.191:3000';
 //let socket = io('http://35.244.33.191:3000');
 let socket = io(server);
 
@@ -64,7 +64,14 @@ let zone = document.getElementById('drop-zone');
 let handZone = document.getElementById('hand-zone');
 ////console.log(myimages['table.jpg'].src)
 //zone.style.backgroundImage = "url(" + myimages['table.jpg'].src + ")";
-document.body.style.backgroundImage = "url(" + server + '/'+ "background.jpg" + ")";
+
+//var image = document.images[0];
+var downloadingImage = new Image();
+downloadingImage.onload = function(){
+  console.log("image loaded");
+    document.body.style.backgroundImage = "url(" + server + '/'+ "background.jpg" +")";   
+};
+downloadingImage.src = server + '/'+ "background.jpg" ;
 
 // Game Page Elements
 ////////////////////////////////////////////////////////////////////////////
