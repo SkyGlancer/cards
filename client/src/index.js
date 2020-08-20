@@ -1,36 +1,45 @@
-import Phaser from "phaser";
-import Game from "./scenes/game"
 import io from 'socket.io-client';
 import {calculateCoords} from './helpers/cardsHelper';
 
 //const server = 'http://10.0.2.2:3000';
-//const server = 'http://localhost:3000';
-const server = 'http://35.244.33.191:3000';
+const server = 'http://localhost:3000';
+//const server = 'http://35.244.33.191:3000';
 //let socket = io('http://35.244.33.191:3000');
 let socket = io(server);
 
 //preload images
-var myimages =  {};
-function preloadimages(imageUrls){
-  imageUrls.forEach(url => {
-    myimages[url] = new Image();
-    myimages[url].src = server + '/' + url;
+function preloadimages(){
+  var images = "10C.jpg 10H.jpg 2C.jpg 2H.jpg 3C.jpg 3H.jpg 4C.jpg 4H.jpg 5C.jpg 5H.jpg 6C.jpg 6H.jpg 7C.jpg 7H.jpg 8C.jpg 8H.jpg 9C.jpg 9H.jpg AC.jpg AH.jpg JC.jpg JH.jpg KC.jpg KH.jpg QC.jpg QH.jpg 10D.jpg 10S.jpg 2D.jpg 2S.jpg 3D.jpg 3S.jpg 4D.jpg 4S.jpg 5D.jpg 5S.jpg 6D.jpg 6S.jpg 7D.jpg 7S.jpg 8D.jpg 8S.jpg 9D.jpg 9S.jpg AD.jpg AS.jpg JD.jpg JS.jpg KD.jpg KS.jpg QD.jpg QS.jpg"
+  var res = images.split(" ");
+  var dir = "playingCards/";
+  var image;
+  res.forEach(file => {
+    image = new Image();
+    image.src = server + '/' +  dir + file;
   })
-}
-var imageUrls = [];
-imageUrls.push('table.jpg');
-imageUrls.push('background.jpg')
+  image = new Image();
+  image.src = server + '/' + 'standard_card_back_blue.png';
 
-preloadimages(imageUrls);
+  images = "Blue_0.png Blue_6.png Blue_Skip.png Green_5.png Green_Reverse.png Red_4.png Red_Draw.png Yellow_1.png Yellow_7.png Blue_1.png Blue_7.png Green_0.png Green_6.png Green_Skip.png Red_5.png Red_Reverse.png Yellow_2.png Yellow_8.png Blue_2.png Blue_8.png Green_1.png Green_7.png Red_0.png Red_6.png Red_Skip.png Yellow_3.png Yellow_9.png Blue_3.png Blue_9.png Green_2.png Green_8.png Red_1.png Red_7.png Wild.png Yellow_4.png Yellow_Draw.png Blue_4.png Blue_Draw.png Green_3.png Green_9.png Red_2.png Red_8.png Wild_Draw.png Yellow_5.png Yellow_Reverse.png Blue_5.png Blue_Reverse.png Green_4.png Green_Draw.png Red_3.png Red_9.png Yellow_0.png Yellow_6.png Yellow_Skip.png"
+  res = images.split(" ");
+  dir = "uno/"
+  res.forEach(file => {
+    image = new Image();
+    image.src = server + '/' +  dir + file;
+  })
+  image = new Image();
+  image.src = server + '/' + 'uno/Deck.png';
+}
+
+//imageUrls.push('table.jpg');
+//imageUrls.push('background.jpg')
+
+preloadimages();
 
 const config = {
-    type: Phaser.AUTO,
-    parent: "phaser-example",
     width: 1680,
     height: 858,
-    scene: [
-        Game
-    ]
+ 
 };
 
 
@@ -53,9 +62,9 @@ let DealCards = document.getElementById('DealCards');
 //zone
 let zone = document.getElementById('drop-zone');
 let handZone = document.getElementById('hand-zone');
-console.log(myimages['table.jpg'].src)
+////console.log(myimages['table.jpg'].src)
 //zone.style.backgroundImage = "url(" + myimages['table.jpg'].src + ")";
-document.body.style.backgroundImage = "url(" + myimages['background.jpg'].src + ")";
+document.body.style.backgroundImage = "url(" + server + '/'+ "background.jpg" + ")";
 
 // Game Page Elements
 ////////////////////////////////////////////////////////////////////////////
@@ -77,13 +86,6 @@ let randomCard = null;
 //let cardHelper = new CardsHelper();
 //
 newGame();
-export class CardsGame extends Phaser.Game {
-    constructor(config, socket, players) {
-        super(config)
-        this.socket = socket;
-        this.players = players;
-    }
-  }
 
 
 
@@ -141,25 +143,25 @@ $( "#slider" ).hide();
 //game buttons
 AddStandardDeck.onclick = () => {
   $('#AddUnoDeck').hide();
-  console.log("AddStandardDeck")
+  //console.log("AddStandardDeck")
   socket.emit('AddStandardDeck');
 }
 DealCards.onclick = () => {
-  console.log("DealCards")
+  //console.log("DealCards")
   socket.emit("dealCards");
 }
 AddUnoDeck.onclick = () => {
   $('#AddStandardDeck').hide();
-  console.log("AddUnoDeck")
+  //console.log("AddUnoDeck")
   socket.emit('AddUnoDeck');
 }
 ShuffleCards.onclick = () => {
-  console.log("suffle")
+  //console.log("suffle")
   socket.emit('suffle');
 }
 
 SubmitHand.onclick = () => {
-  console.log("submit")
+  //console.log("submit")
   submit();
 }
 Sort.onclick = () => {
@@ -225,27 +227,27 @@ socket.on('showCards', (num) =>{
 
 function showCards(num) {
     var gameObjectsOnTable = $('#drop-zone-unstacked').children();
-    console.log($('#drop-zone-unstacked').children())
+    //console.log($('#drop-zone-unstacked').children())
     for(let i = 0; i<num; i++){
-        console.log("gameObjectsOnTable");
-        console.log(gameObjectsOnTable);
+        //console.log("gameObjectsOnTable");
+        //console.log(gameObjectsOnTable);
         gameObjectsOnTable[gameObjectsOnTable.length - i -1].src = server + "/" + gameObjectsOnTable[gameObjectsOnTable.length - i -1].card.imageUrl;
     }
 }
 
 //server responses
 socket.on('gameState', (data) =>{           // Response to gamestate update
-  //console.log("gamestate : " + data);
+  ////console.log("gamestate : " + data);
   gameTableHidden = data.gameTableHidden;
   players = data.players;
-  //console.log("player data from server: " + data.player);
+  ////console.log("player data from server: " + data.player);
   player = JSON.parse(data.player);
-  //console.log("after update, player:" + player);
+  ////console.log("after update, player:" + player);
   cardsOnTable = JSON.parse(data.cardsOnTable);
   cardDealt = data.cardDealt;
   deckSize = data.deckSize;
   lastPlayer = data.lastPlayer;
-  //console.log("random card" +data.randomCard);
+  ////console.log("random card" +data.randomCard);
   if(data.randomCard){
     randomCard = JSON.parse(data.randomCard);
   } else {
@@ -267,9 +269,9 @@ function updateGame() {
     $("#drop-zone-unstacked").empty();
     $('#random-card').empty();
     player.hand.forEach(card => {
-        //console.log(card.imageUrl);
+        ////console.log(card.imageUrl);
         var elem = document.createElement("img");
-        console.log(card.imageUrl);
+        //console.log(card.imageUrl);
         elem.setAttribute("class", "card");
         elem.src = server + "/" + card.imageUrl;
         $('#hand-zone').append(elem);
@@ -279,10 +281,10 @@ function updateGame() {
     $("#hand-zone").each(function () {fan($(this)); });
     setupHand();
     for(var stacked =0 ; stacked < cardsOnTable.length ; stacked++){
-        //console.log("unstacked")
+        ////console.log("unstacked")
         var card = cardsOnTable[stacked];
         var elem = document.createElement("img");
-        console.log(card.imageUrl);
+        //console.log(card.imageUrl);
         elem.setAttribute("class", "card");
         var image = (!gameTableHidden) ? card.imageUrl : card.backImageUrl;
         elem.src = server + "/" + image;
@@ -292,7 +294,7 @@ function updateGame() {
     $("#drop-zone-unstacked").each(function () { hand($(this)); });
     if(randomCard){
         var elem = document.createElement("img");
-        console.log(randomCard.imageUrl);
+        //console.log(randomCard.imageUrl);
         elem.setAttribute("class", "card");
         var image = showRandomCards ? randomCard.imageUrl : randomCard.backImageUrl;
         elem.src =  server + "/" + image;
@@ -346,7 +348,7 @@ function setupHand(){
     } else {
       $( "#slider" ).hide();
     }
-    console.log(cards);
+    //console.log(cards);
     cards.each(function() {
         $(this).dblclick(function() {
               drop(this);
@@ -367,7 +369,7 @@ function drop(card){
     player.currentDealt.push(card.card);
     for( var i = 0; i < player.hand.length; i++){ 
         if ( player.hand[i].imageUrl == card.card.imageUrl) { 
-            //console.log("removing:" + self.player.hand[i].imageUrl);
+            ////console.log("removing:" + self.player.hand[i].imageUrl);
             player.hand.splice(i, 1); 
             card.index = i;
         }
@@ -405,7 +407,7 @@ function fan(hand) {
 
     var cards;
     hand.data("fan", 'radius: ' + fanOptions.radius + '; spacing: ' + fanOptions.spacing);
-    console.log(fanOptions);
+    //console.log(fanOptions);
     cards = hand.find("img.card");
     if (cards.length === 0) {
         return;
@@ -418,7 +420,7 @@ function hand($hand, cfg) {
                 width,
                 height;
             $.extend(fanOptions, Options, readOptions($hand, 'hand'));
-            console.log(Options)
+            //console.log(Options)
             cards = $hand.find('img.card');
             if (cards.length === 0) {
                 return;
@@ -446,8 +448,8 @@ function fanCards(cards, self, fanOptions) {
 
         var width =  fanOptions.width; // hack: for a hidden hand
         fanOptions.spacing = $( "#slider" ).slider( "value" )/100 || fanOptions.spacing;
-        console.log('width');
-        console.log(width);
+        //console.log('width');
+        //console.log(width);
         var radius = fanOptions.radius;
         if(n>26) radius = 6*radius;
         var height =  Math.floor(width * 1.4); // hack: for a hidden hand
@@ -461,9 +463,9 @@ function fanCards(cards, self, fanOptions) {
         hand.height(box.height);
 
         var i = 0;
-        console.log(coords[coords.length -1].x);
+        //console.log(coords[coords.length -1].x);
         var gap = config.width - coords[coords.length -1].x - width;
-        console.log(gap);
+        //console.log(gap);
         coords.forEach(function (coord) {
             var card = cards[i++];
             var x = coord.x + gap/2 ;
@@ -504,8 +506,8 @@ function readOptions($elem, name) {
     var v, i, len, s, options, o = {};
 
     options = $elem.data(name);
-    console.log("nitish")
-    console.log(options)
+    //console.log("nitish")
+    //console.log(options)
     options = (options || '').replace(/\s/g, '').split(';');
     for (i = 0, len = options.length; i < len; i++) {
         s = options[i].split(':');
