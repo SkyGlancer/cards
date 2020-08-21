@@ -1,9 +1,8 @@
 import io from 'socket.io-client';
 import {calculateCoords} from './helpers/cardsHelper';
 
-//const server = 'http://10.0.2.2:3000';
-//const server = 'http://localhost:3000';
-const server = 'http://35.244.33.191:3000';
+const server = 'http://localhost:3000';
+//const server = 'http://35.244.33.191:3000';
 //let socket = io('http://35.244.33.191:3000');
 let socket = io(server);
 
@@ -122,7 +121,7 @@ socket.on('joinResponse', (data) =>{        // Response to joining room
     gameDiv.style.display = 'block'
     players = data.players;
     players.forEach(player => playerCardsNum.push(0));
-
+     showPlayers();
     //const game = new CardsGame(config,socket, data.players);
   } else joinErrorMessage.innerText = data.msg
 })
@@ -134,6 +133,7 @@ socket.on('createResponse', (data) =>{      // Response to creating room
     gameDiv.style.display = 'block'
     players = data.players;
     players.forEach(player => playerCardsNum.push(0));
+    showPlayers();
    //const game = new CardsGame(config, socket, data.players);
   } else joinErrorMessage.innerText = data.msg
 })
@@ -242,6 +242,7 @@ function showCards(num) {
     }
 }
 
+var playersOld = [];
 //server responses
 socket.on('gameState', (data) =>{           // Response to gamestate update
   ////console.log("gamestate : " + data);
@@ -267,6 +268,51 @@ socket.on('gameState', (data) =>{           // Response to gamestate update
   updateGame();
 });
 
+
+
+$('#send-message-form').on('submit', function (event) {
+    event.preventDefault();
+    var sendObj = {};
+    sendObj.msg = "<strong>" + joinNickname.value +"</strong>" + ": " + $('#msginput').val();
+    console.log(sendObj.msg);
+    var date = new Date();
+    var time = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+    sendObj.dt = time;
+    var msg = document.createElement("div");
+    msg.setAttribute("class", "message");
+    
+    var dt = document.createElement("div");
+    dt.setAttribute("class", "datetime");
+    dt.innerHTML = sendObj.dt;
+
+    message.appendChild(dt);
+    msg.innerHTML = sendObj.msg;
+    msg.appendChild(dt);    
+    $('#chat-container').append(msg);
+    var objDiv = document.getElementById('chat-container');
+    objDiv.scrollTop = objDiv.scrollHeight;
+    $('#msginput').val('');
+    socket.emit("sendMessage", sendObj);
+  });
+
+
+socket.on("recieveMessage", (data) => {
+
+    var msg = document.createElement("div");
+    msg.setAttribute("class", "message");
+    
+    var dt = document.createElement("div");
+    dt.setAttribute("class", "datetime");
+    dt.innerHTML = data.dt;
+
+    message.appendChild(dt);
+    msg.innerHTML = data.msg;
+    msg.appendChild(dt);    
+    $('#chat-container').append(msg);
+    var objDiv = document.getElementById('chat-container');
+    objDiv.scrollTop = objDiv.scrollHeight;
+    $('#msginput').val('');
+});
 
 
 function updateGame() {
@@ -312,38 +358,92 @@ function updateGame() {
     } else {
       hideDeckControls();
     }
-    showPlayers();
+    console.log("new players")
+    if(players != playersOld){
+      console.log("new players")
+      showPlayers();
+    }
+    
     //$("#random-card").each(function () { hand($(this)); });
     
 }
 
 function showPlayers(){
+  if(gameTableHidden){
+    $('#HideTable').hide();
+    $('#ShowTable').show();
+  } else {
+    $('#HideTable').show();
+    $('#ShowTable').hide();
+  }
+  if(randomCard){
+    if(showRandomCards){
+      $('#ShowRandom').hide();
+      $('#HideRandom').show();
+    } else {
+      $('#ShowRandom').show();
+      $('#HideRandom').hide();
+    }
+  }
+  var btn = document.getElementById("AutoSubmit");
+  if(autoSubmit){
+    console.log("autoSubmit")
+    btn.innerHTML  = "AutoSubmit: OFF";
+  } else {
+    btn.innerHTML  = "AutoSubmit: ON";
+  }
 
+  $('#players').empty();
   var playersText = " ";
   for(let i=0; i<players.length; i++){
-      var player = players[i];
+      var tplayer = players[i];
       var num = 0;
+      var elem;
       if(playerCardsNum[i])
           num = playerCardsNum[i];
-      if(lastPlayer && lastPlayer == player) {
-          playersText = playersText + " <<Player Name: "  + player +">>";
+      if(lastPlayer && lastPlayer == tplayer) {
+          elem = document.createElement("li");
+          elem.setAttribute("id", "lastPlayer");
+          
       } else {
-          playersText = playersText + " Player Name: "  + player;
+          if(joinNickname.value == tplayer){
+            elem = document.createElement("li");
+            elem.setAttribute("id", "currentPlayer");
+          }
+          else {
+            elem = document.createElement("li");
+            elem.setAttribute("id", "normalPlayer");
+          }
       }
       if(num) {
-          playersText = playersText + "(" + num + ")";
+          elem.innerHTML = tplayer +  "(" + num + ")" ;
+      } else {
+        elem.innerHTML = tplayer;
       }
+      $('#players').append(elem); 
   }
 
-
-  if(gameTableHidden) {
-      playersText = playersText + " tablehidden"
-  }
-  if(autoSubmit){
-      playersText = playersText + " autoSubmit : on"
-  }
   
-  $('#players').text(playersText);  
+  //$('#players').text(playersText);  
+
+  var type = 1, //circle type - 1 whole, 0.5 half, 0.25 quarter
+  radius = '5em', //distance from center
+  start = -90, //shift start from 0
+  //$elements = $('li:not(:first-child)'),
+  $elements = $('#players').children('li'),
+  numberOfElements = (type === 1) ?  $elements.length : $elements.length - 1, //adj for even distro of elements when not full circle
+  slice = 360 * type / numberOfElements ; 
+
+  $elements.each(function(i) {
+      var $self = $(this),
+          rotate = slice * i + start,
+          rotateReverse = rotate * -1;
+      
+      $self.css({
+          'transform': 'rotate(' + rotate + 'deg) translate(' + radius + ') rotate(' + rotateReverse + 'deg)'
+      });
+    });
+  playersOld = players;
 }
 
 

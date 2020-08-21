@@ -587,7 +587,7 @@ button {
 #hand-zone-control {
   position: absolute;
   top:830px;
-  left:760px;
+  left:710px;
   width: 500px;
 }
 
@@ -599,7 +599,7 @@ button {
     padding: 4px;
     width: 15%;
     font-size: 12px;
-    background: #686c6d;
+    background: #323032;
     color: #F8FDFF;
 }
 
@@ -627,7 +627,7 @@ button {
     padding: 4px;
     width: 60%;
     font-size: 12px;
-    background: #686c6d;
+    background: #323032;;
     color: #F8FDFF;
 }
 
@@ -636,7 +636,7 @@ button {
 }
 
 #drop-zone-bottom {
-  margin-left: 80px;
+  margin-left: 150px;
 }
 
 #drop-zone-bottom button{
@@ -647,16 +647,16 @@ button {
     padding: 4px;
     width: 15%;
     font-size: 12px;
-    background: #686c6d;
+    background:  #323032;
     color: #F8FDFF;
 }
 
 #drop-zone-bottom button:hover {
- background: #11779F
+ background: #323032;
 }
 
 #deck button:hover {
- background: #11779F
+ background: #11779F;
 }
 
 #random-card{
@@ -675,4 +675,110 @@ button {
   top: 525px;
   left: 800px;
   width: 100px;
+}
+
+#playercircle {
+    height: 180;
+    position: absolute;
+    top: 275;
+    left: 125;
+    width: 180;
+    border-radius: 50%;
+    border-collapse: separate;
+    border-spacing: 20px 0px;
+    box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
+}
+#players {
+   position: absolute;
+    top: 350px; left: 200px; /*for example purposes only*/
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    
+}
+
+#players li {
+   position: absolute;
+    -webkit-transition: all 2s linear;
+    -moz-transition: all 2s linear;
+    transition: all 2s linear;
+    font-size: 17.5;
+  
+}
+
+#lastPlayer{
+  color: blue;
+  font-weight: bolder;
+}
+
+#currentPlayer{
+  color: white;
+  text-decoration: underline;
+}
+
+#normalPlayer{
+  color: white;
+}
+
+
+
+*{
+  box-sizing: border-box;
+}
+  
+.container{
+  position: absolute;
+      top: 260;
+    left: 1430;
+  width: 200px;
+  height :200px;
+  margin: 0 auto;
+  border: solid 1px #ccc;
+  border-radius: 5px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+  
+#chat-container{
+  overflow :auto;
+}
+  
+  .message{
+    border-bottom :solid 1px #ccc;
+    padding :0px;
+    color: white;
+  }
+    
+    .datetime{
+      float :right;
+      color : white;
+      font-size :8px;
+    }
+
+    #send-message-form{
+      margin-top: auto;
+       margin-block-end: 0em;
+    }
+
+#send-message-form
+  input{
+    width :100%;
+    border :none;
+    font-size :14px;
+    padding :5px;
+
+  }
+ #send-message-form button{
+    display :none
+  }
+
+
+ button {
+    margin: 0.5%;
+    font-size: 12px;
+    background: #323032;
+    border: 2px solid #F8FDFF;
+    color: #F8FDFF;
+    text-decoration: none;
 }

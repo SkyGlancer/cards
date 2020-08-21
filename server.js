@@ -361,6 +361,15 @@ io.on('connection', function (socket) {
       
     });
 
+    socket.on('sendMessage', function(data) {
+      var playerObjs = ROOM_LIST[PLAYER_LIST[socket.id].room].playersArr;
+        playerObjs.forEach(player => { // For everyone in the passed room// Add specific clients team info
+          if(player != socket.id){
+            SOCKET_LIST[player].emit('recieveMessage', data)  // Pass data to the client
+          }
+        });
+
+    });
 
     socket.on('autoSubmit', function() {
       let player = PLAYER_LIST[socket.id];
