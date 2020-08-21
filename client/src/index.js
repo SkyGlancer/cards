@@ -94,7 +94,21 @@ let randomCard = null;
 newGame();
 
 
+/*
+//screem size handling
+var sheight = $(window).height();
+var swidth = $(window).width();
+if(swidth<config.width/3){
+  $('#drop-zone').css("left","0px");
+  $('#hand-zone').css("left","0px");
+  $('#hand-zone-control').css("left", "100px");
+  $('#deck').css("left","0px");
+  $('#deck').css("top","858px");
+  $('#players').css("top","200px");
+  $('#playercircle').css("top","0px");
 
+}
+*/
 // UI Interaction with server
 ////////////////////////////////////////////////////////////////////////////
 // User Joins Room
@@ -316,23 +330,26 @@ socket.on("recieveMessage", (data) => {
 
 
 function updateGame() {
-    $('#hand-zone').empty();
     $('#drop-zone-current').empty();
     $("#drop-zone-stacked").empty();
     $("#drop-zone-unstacked").empty();
     $('#random-card').empty();
-    player.hand.forEach(card => {
-        ////console.log(card.imageUrl);
-        var elem = document.createElement("img");
-        //console.log(card.imageUrl);
-        elem.setAttribute("class", "card");
-        elem.src = server + "/" + card.imageUrl;
-        $('#hand-zone').append(elem);
-        elem.card = card;
-        
-    });
-    $("#hand-zone").each(function () {fan($(this)); });
-    setupHand();
+    if(player.updateHand){
+      $('#hand-zone').empty();
+      player.hand.forEach(card => {
+          ////console.log(card.imageUrl);
+          var elem = document.createElement("img");
+          //console.log(card.imageUrl);
+          elem.setAttribute("class", "card");
+          elem.src = server + "/" + card.imageUrl;
+          $('#hand-zone').append(elem);
+          elem.card = card;
+          
+      });
+      $("#hand-zone").each(function () {fan($(this)); });
+      setupHand();
+      player.updateHand = false;
+    }
     for(var stacked =0 ; stacked < cardsOnTable.length ; stacked++){
         ////console.log("unstacked")
         var card = cardsOnTable[stacked];
@@ -388,9 +405,9 @@ function showPlayers(){
   var btn = document.getElementById("AutoSubmit");
   if(autoSubmit){
     console.log("autoSubmit")
-    btn.innerHTML  = "AutoSubmit: OFF";
-  } else {
     btn.innerHTML  = "AutoSubmit: ON";
+  } else {
+    btn.innerHTML  = "AutoSubmit: OFF";
   }
 
   $('#players').empty();
@@ -491,7 +508,21 @@ Discard.onclick = () => {
     player.hand.splice(this.index, 0, this.card);
    });
    player.currentDealt = [];
-   updateGame();
+   //updateGame();
+   $('#drop-zone-current').empty();
+   $('#hand-zone').empty();
+    player.hand.forEach(card => {
+      ////console.log(card.imageUrl);
+      var elem = document.createElement("img");
+      //console.log(card.imageUrl);
+      elem.setAttribute("class", "card");
+      elem.src = server + "/" + card.imageUrl;
+      $('#hand-zone').append(elem);
+      elem.card = card;
+      
+  });
+  $("#hand-zone").each(function () {fan($(this)); });
+  setupHand();
 
 }
  

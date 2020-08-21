@@ -50,6 +50,7 @@ class Player {
         this.hand = []; //cards in  his hands
         this.lastDealt = [];
         this.currentDealt = [];
+        this.updateHand = false;
         
 
         // Add player to player list and add their socket to the socket list
@@ -241,6 +242,7 @@ io.on('connection', function (socket) {
 
     socket.on('cardPlayed', function (playerJSON) {
         let player = PLAYER_LIST[socket.id]; 
+        player.updateHand = true;
         let playerRemote = JSON.parse(playerJSON);
         PLAYER_LIST[player.id].hand = playerRemote.hand;
         if(playerRemote.currentDealt.length >0) {
@@ -257,6 +259,7 @@ io.on('connection', function (socket) {
 
     socket.on('pick', function(number) {
         let player = PLAYER_LIST[socket.id]; 
+        player.updateHand = true;
         if(number == -1){
             console.log("pushing all from table" + ROOM_LIST[player.room].game.cardsOnTable + "to "+ player.hand)
             ROOM_LIST[player.room].game.cardsOnTable.forEach(card => player.hand.push(card));
@@ -281,6 +284,7 @@ io.on('connection', function (socket) {
 
     socket.on('revert', function() {
         let player = PLAYER_LIST[socket.id]; 
+        player.updateHand = true;
         if(ROOM_LIST[player.room].game.lastPlayerId && socket.id == ROOM_LIST[player.room].game.lastPlayerId){
             for(var i=0; i < player.lastDealt.length ; i++){
               player.hand.push(ROOM_LIST[player.room].game.cardsOnTable.pop());
@@ -298,6 +302,7 @@ io.on('connection', function (socket) {
 
     socket.on('sortHand', function(){
        let player = PLAYER_LIST[socket.id];
+       player.updateHand = true;
        player.hand.sort(sortCardFun);
        console.log("player id for sort" + player.id);
        gameUpdate(player.room, {'players' : [player.id]});
@@ -358,6 +363,7 @@ io.on('connection', function (socket) {
             console.log("player id for draw" + player.id);
             gameUpdate(player.room, {'players' : [player.id]});
       }
+      player.updateHand = true;
       
     });
 
@@ -559,6 +565,7 @@ function gameUpdate(roomName, opts){
     console.log("emmiting game state for player:" + player + "autoSubmit" + gameState.autoSubmit +" socket:" + SOCKET_LIST[player] + "gamestate player: " + gameState.player + "random:" + gameState.randomCard);
     console.log("gamestate cardsontable: " + gameState.cardsOnTable)
     SOCKET_LIST[player].emit('gameState', gameState)  // Pass data to the client
+    PLAYER_LIST[player].updateHand = false;
   });
 }
 
@@ -571,6 +578,7 @@ function dealCards(room){
             var handSize = parseInt(deck.cards.length/playerCount);
             console.log("handsize: " + handSize + "deck size: " + deck.cards.length);
             for(var key in room.players){
+              room.players[key].updateHand = true;
               for (let i = 0; i < handSize; i++) {
                  var card = deck.drawCard();
                  if(card) room.players[key].hand.push(card);
@@ -590,6 +598,7 @@ function showCards(roomName, cardSize){
 function newGame(room){
   console.log("rooms" + room);
   for (let player in room.players){
+    room.players[player].updateHand = true;
     PLAYER_LIST[player].clear()
   }
   room.game = new Game();
