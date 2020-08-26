@@ -1,7 +1,7 @@
 import io from 'socket.io-client';
 import {calculateCoords} from './helpers/cardsHelper';
 
-//const server = 'http://localhost:3000';
+//const server = 'http://10.0.2.2:3000';
 const server = 'http://35.244.33.191:3000';
 //let socket = io('http://35.244.33.191:3000');
 let socket = io(server);
@@ -38,8 +38,11 @@ preloadimages();
 const config = {
     width: 1680,
     height: 858,
+    mobilewidth: 700,
  
 };
+
+
 
 
 // Sign In Page Elements
@@ -283,6 +286,17 @@ socket.on('gameState', (data) =>{           // Response to gamestate update
 });
 
 
+//document.body.style.transform = 'scale(' + window.screen.availHeight/2 + ')';
+$(window).on("deviceorientation", function( event ) {
+    if (window.matchMedia("(orientation: portrait)").matches) {
+
+      $("#hand-zone").each(function () {fan($(this)); });
+    }
+    if (window.matchMedia("(orientation: landscape)").matches) {
+      $("#hand-zone").each(function () {fan($(this)); });
+    }
+  });
+
 
 $('#send-message-form').on('submit', function (event) {
     event.preventDefault();
@@ -433,10 +447,14 @@ function showPlayers(){
           }
       }
       if(num) {
-          elem.innerHTML = tplayer +  "(" + num + ")" ;
+          tplayer = tplayer +  "(" + num + ")" ;
       } else {
-        elem.innerHTML = tplayer;
+        tplayer = tplayer;
       }
+      if(joinNickname.value == tplayer){
+            tplayer = "(" + tplayer + ")";
+      }
+      elem.innerHTML = tplayer ;
       $('#players').append(elem); 
   }
 
@@ -527,6 +545,7 @@ Discard.onclick = () => {
 }
  
 function submit() {
+    $("#hand-zone").each(function () {fan($(this)); });
     socket.emit('cardPlayed', JSON.stringify(player));
 }
  
@@ -602,7 +621,13 @@ function fanCards(cards, self, fanOptions) {
 
         var i = 0;
         //console.log(coords[coords.length -1].x);
-        var gap = config.width - coords[coords.length -1].x - width;
+        var screenWidth = config.width;
+        var tmpw = $(document).width();
+        if (window.matchMedia("(orientation: portrait)").matches) {
+          screenWidth = tmpw;
+   // you're in PORTRAIT mode
+        }
+        var gap = screenWidth - coords[coords.length -1].x - width;
         //console.log(gap);
         coords.forEach(function (coord) {
             var card = cards[i++];

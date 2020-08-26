@@ -9,25 +9,29 @@ class Room {
   constructor(name, pass){
     this.room = '' + name
     this.password = '' + pass
-    this.players = {}
+    this.players = {} //playerId to player
     this.playersArr = [];
     this.game = new Game()
     this.difficulty = 'normal'
     this.mode = 'casual'
+    this.removedPlayers = {}; //name to player
 
     // Add room to room list
     ROOM_LIST[this.room] = this
   }
 }
 
-let SOCKET_LIST = {}
-let ROOM_LIST = {}
-let PLAYER_LIST = {}
+let SOCKET_LIST = {} //socket id to socket
+let ROOM_LIST = {}  // room name to room
+let PLAYER_LIST = {} //socketid/playerid to player
+
+
 
 class Player {
     constructor(nickname, room, socket){
         this.id = socket.id
 
+/*
         // If someone in the room has the same name, append (1) to their nickname
         let nameAvailable = false
         let nameExists = false;
@@ -43,7 +47,8 @@ class Player {
             else nameAvailable = true
           }
         }
-        this.nickname = tempName
+        */
+        this.nickname = nickname
         this.room = room
         this.timeout = 2100         // # of seconds until kicked for afk (35min)
         this.afktimer = this.timeout       
@@ -242,7 +247,7 @@ io.on('connection', function (socket) {
 
     socket.on('cardPlayed', function (playerJSON) {
         let player = PLAYER_LIST[socket.id]; 
-        player.updateHand = true;
+        player.updateHand = false;
         let playerRemote = JSON.parse(playerJSON);
         PLAYER_LIST[player.id].hand = playerRemote.hand;
         if(playerRemote.currentDealt.length >0) {
@@ -295,10 +300,6 @@ io.on('connection', function (socket) {
 
     });
 
-    socket.on('disconnect', function () {
-        console.log('A user disconnected: ' + socket.id);
-        //players = players.filter(player => player !== socket.id);
-    });
 
     socket.on('sortHand', function(){
        let player = PLAYER_LIST[socket.id];
@@ -454,13 +455,36 @@ function joinRoom(socket, data){
         socket.emit('joinResponse', {success:false, msg:'Enter A Valid Nickname'})
       } else {
         //room exist card already dealt  
+          for (let i in ROOM_LIST[roomName].players){
+             if (ROOM_LIST[roomName].players[i].nickname === userName){
+                socket.emit('joinResponse', {success:false, msg:'Name already taken in the room, Please try again'});
+                return;
+             }
+          }
+          var player;
+          var nameExists = false;
           if(ROOM_LIST[roomName].game.cardDealt == true){
-            socket.emit('joinResponse', {success:false, msg:'Game already in progress, ask members to start new Game'})
-          } else {
+            for (let i in ROOM_LIST[roomName].removedPlayers){
+                  if (ROOM_LIST[roomName].removedPlayers[i].nickname === userName){
+                     nameExists = true;
+                     player = ROOM_LIST[roomName].removedPlayers[i];
+                     player.id = socket.id;
+                     PLAYER_LIST[player.id] = player;
+                     delete ROOM_LIST[roomName].removedPlayers[i];
+                  }
+            }
+            if(!nameExists){
+              socket.emit('joinResponse', {success:false, msg:'Game already in progress, ask to start new Game'})
+              return;
+            }
+          }
           // If the room exists and the password / nickname are valid, proceed
-          let player = new Player(userName, roomName, socket)   // Create a new player
+          if(!nameExists) {
+            player = new Player(userName, roomName, socket)   // Create a new player
+          }
           ROOM_LIST[roomName].players[socket.id] = player  
-          ROOM_LIST[roomName].playersArr.push(socket.id);     // Add player to room
+          ROOM_LIST[roomName].playersArr.push(socket.id);  
+          player.updateHand = true;   // Add player to room
           //player.joinTeam()                                     // Distribute player to team
           let players = [];
           for(var key in ROOM_LIST[roomName].players) {players.push(ROOM_LIST[roomName].players[key].nickname)};
@@ -469,7 +493,6 @@ function joinRoom(socket, data){
           gameUpdate(roomName)                                  // Update the game for everyone in this room
           // Server Log
           logStats(socket.id + "(" + player.nickname + ") JOINED '" + ROOM_LIST[player.room].room + "'(" + Object.keys(ROOM_LIST[player.room].players).length + ")")
-        }
       }
     }
   }
@@ -485,6 +508,7 @@ function leaveRoom(socket){
   console.log("leaveRoom" + ROOM_LIST[player.room].playersArr.length);
   for(let i=0; i<ROOM_LIST[player.room].playersArr.length; i++){
       if(ROOM_LIST[player.room].playersArr[i] == socket.id ){
+        ROOM_LIST[player.room].removedPlayers[player.nickname] = player;
         ROOM_LIST[player.room].playersArr.splice(i, 1);
       }
     }
@@ -512,6 +536,7 @@ function socketDisconnect(socket){
     console.log("socketDisconnect" + ROOM_LIST[player.room].playersArr.length);
     for(let i=0; i<ROOM_LIST[player.room].playersArr.length; i++){
       if(ROOM_LIST[player.room].playersArr[i] == socket.id ){
+        ROOM_LIST[player.room].removedPlayers[player.nickname] = player;
         ROOM_LIST[player.room].playersArr.splice(i, 1);
       }
     }

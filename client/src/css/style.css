@@ -606,6 +606,8 @@ button {
 #hand-zone-control button:hover {
  background: #11779F
 } 
+
+
 #deck{
   position: absolute;
   top: 25px;
@@ -678,19 +680,20 @@ button {
 }
 
 #playercircle {
-    height: 180;
+    height: 180px;
     position: absolute;
-    top: 275;
-    left: 125;
-    width: 180;
+    top: 275px;
+    left: 50px;
+    width: 180px;
     border-radius: 50%;
     border-collapse: separate;
     border-spacing: 20px 0px;
     box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
 }
+
 #players {
    position: absolute;
-    top: 350px; left: 200px; /*for example purposes only*/
+    top: 350px; left: 125px; /*for example purposes only*/
     list-style-type: none;
     margin: 0;
     padding: 0;
@@ -774,11 +777,72 @@ button {
   }
 
 
- button {
+button {
     margin: 0.5%;
     font-size: 12px;
     background: #323032;
     border: 2px solid #F8FDFF;
     color: #F8FDFF;
     text-decoration: none;
+}
+
+
+@media (orientation: portrait)  {
+
+  .container{
+  top: 80px;
+  left: 380px;
+  }
+
+  #drop-zone {
+  top: 280px;
+  left: 0px;
+  }
+
+  #hand-zone {
+    top:680px;
+    left:0px;
+  }
+
+  #hand-zone-control {
+    top:830px;
+    left:210px;
+  }
+
+
+  #slider{
+    top: 640px;
+    left: 210px;
+  }
+
+  #deck{
+    top: 70;
+    left: 200px;
+  }
+
+  #playercircle {
+    top: 75;
+    left:10;
+    
+  }
+
+  #players {
+      top: 140px; 
+      left:80;
+  }
+  #toggles{
+    left: 0;
+    top: 0;
+    position: absolute;
+    width: 150px;
+  }
+
+  body {
+    transform: scale(0.70);
+  }
+
+  #game{
+    transform: translate(-75px, -180px);
+  }
+
 }
