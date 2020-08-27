@@ -275,6 +275,7 @@ io.on('connection', function (socket) {
                 player.hand.push(ROOM_LIST[player.room].game.cardsOnTable.pop());
             }
         }
+        player.updateHand = true;
         gameUpdate(player.room);
 
     });

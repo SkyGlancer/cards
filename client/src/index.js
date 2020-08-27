@@ -223,6 +223,10 @@ NewGame.onclick = () => {
    newGame();
 }
 
+PickAll.onclick = () => {
+  socket.emit('pick',-1);
+}
+
 function newGame() {
   
   $('#AddStandardDeck').show();
