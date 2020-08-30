@@ -343,7 +343,7 @@ socket.on("recieveMessage", (data) => {
     $('#chat-container').append(msg);
     var objDiv = document.getElementById('chat-container');
     objDiv.scrollTop = objDiv.scrollHeight;
-    $('#msginput').val('');
+    //$('#msginput').val('');
 });
 
 

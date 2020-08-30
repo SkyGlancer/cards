@@ -206,6 +206,7 @@ class StandardDeck extends Deck {
 
 
 io.on('connection', function (socket) {
+  try {	
     SOCKET_LIST[socket.id] = socket;
     console.log('A user connected: ' + socket.id + "socket:" + socket);
 
@@ -289,25 +290,34 @@ io.on('connection', function (socket) {
     });
 
     socket.on('revert', function() {
+      try {
         let player = PLAYER_LIST[socket.id]; 
         player.updateHand = true;
         if(ROOM_LIST[player.room].game.lastPlayerId && socket.id == ROOM_LIST[player.room].game.lastPlayerId){
             for(var i=0; i < player.lastDealt.length ; i++){
-              player.hand.push(ROOM_LIST[player.room].game.cardsOnTable.pop());
+	      if(ROOM_LIST[player.room].game.cardsOnTable.length > 0 )
+              	player.hand.push(ROOM_LIST[player.room].game.cardsOnTable.pop());
             }
             player.lastDealt = [];
             gameUpdate(player.room);
         }
+       } catch (err) {
+	         console.log("ERROR:" + err.message)
+       }
 
     });
 
 
     socket.on('sortHand', function(){
+     try {
        let player = PLAYER_LIST[socket.id];
        player.updateHand = true;
        player.hand.sort(sortCardFun);
        console.log("player id for sort" + player.id);
        gameUpdate(player.room, {'players' : [player.id]});
+      } catch (err) {
+	        console.log("ERROR:" + err.message)
+      }
     });
 
     socket.on('hideTable', function() {
@@ -390,6 +400,9 @@ io.on('connection', function (socket) {
       console.log('ROOM_LIST[player.room].game.autoSubmit' + ROOM_LIST[player.room].game.autoSubmit)
       gameUpdate(player.room);
     });
+  } catch (err) {
+    console.log("ERROR" + err.message);
+  }
 
 });
 
